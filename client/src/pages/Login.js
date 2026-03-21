@@ -16,7 +16,12 @@ const Login = () => {
     if (savedUser) {
       const user = JSON.parse(savedUser);
       if (user.email === email && user.password === password) {
-        localStorage.setItem('user', JSON.stringify({ name: user.name, email: user.email }));
+        localStorage.setItem('user', JSON.stringify({ 
+          name: user.name, 
+          email: user.email,
+          membershipStatus: user.membershipStatus || 'Inactive',
+          plan: user.plan || null
+        }));
         navigate('/home');
         return;
       }
@@ -24,7 +29,12 @@ const Login = () => {
     
     // Default fallback or wrong credentials
     if (email === 'test@test.com' && password === 'password') {
-      localStorage.setItem('user', JSON.stringify({ name: 'Test User', email }));
+      localStorage.setItem('user', JSON.stringify({ 
+        name: 'Test User', 
+        email,
+        membershipStatus: 'Inactive',
+        plan: null
+      }));
       navigate('/home');
     } else {
       setError('Invalid email or password. Please try again or create an account.');

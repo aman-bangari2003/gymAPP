@@ -28,7 +28,9 @@ const Signup = () => {
     localStorage.setItem('userData', JSON.stringify({
       name: formData.name,
       email: formData.email,
-      password: formData.password
+      password: formData.password,
+      membershipStatus: 'Inactive',
+      plan: null
     }));
 
     // Redirect to login
