@@ -1,17 +1,25 @@
 import React from 'react';
 import { Check } from 'lucide-react';
 
-const PlanCard = ({ title, price, features, isPopular, onSelect, isSelected, isAnyPlanSelected }) => {
+const PlanCard = ({ title, price, hikedPrice, features, isPopular, onSelect, isSelected, isAnyPlanSelected }) => {
   const isDimmed = isAnyPlanSelected && !isSelected;
 
   return (
     <div className={`plan-card ${isSelected ? 'selected' : ''} ${isDimmed ? 'dimmed' : ''}`} style={{ ...styles.card, ...(isSelected ? styles.selectedCard : {}) }}>
       {isPopular && <div className={`popular-badge ${isDimmed ? 'dimmed-badge' : ''}`} style={styles.popularBadge}>Most Popular</div>}
       <h3 style={styles.title}>{title}</h3>
-      <div style={styles.priceContainer}>
-        <span style={styles.currency}>$</span>
-        <span style={styles.price}>{price}</span>
-        <span style={styles.period}>/mo</span>
+      <div style={styles.priceSection}>
+        {hikedPrice && (
+          <div style={styles.hikedPriceContainer}>
+            <span style={styles.hikedCurrency}>₹</span>
+            <span style={styles.hikedPrice}>{hikedPrice}</span>
+          </div>
+        )}
+        <div style={styles.priceContainer}>
+          <span style={styles.currency}>₹</span>
+          <span style={styles.price}>{price}</span>
+          <span style={styles.period}>/mo</span>
+        </div>
       </div>
 
       <ul style={styles.featuresList}>
@@ -23,9 +31,9 @@ const PlanCard = ({ title, price, features, isPopular, onSelect, isSelected, isA
         ))}
       </ul>
 
-      <button 
-        onClick={() => !isSelected && onSelect(title)} 
-        className={isSelected ? "btn-primary selected-btn" : "btn-outline interaction-btn"} 
+      <button
+        onClick={() => !isSelected && onSelect(title)}
+        className={isSelected ? "btn-primary selected-btn" : "btn-outline interaction-btn"}
         style={styles.button}
         disabled={isSelected}
       >
@@ -75,11 +83,31 @@ const styles = {
     marginBottom: '1rem',
     textAlign: 'center',
   },
+  priceSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginBottom: '2rem',
+  },
+  hikedPriceContainer: {
+    display: 'flex',
+    alignItems: 'baseline',
+    color: '#9ca3af', /* text-gray-400 */
+    textDecoration: 'line-through',
+    marginBottom: '0.25rem',
+  },
+  hikedCurrency: {
+    fontSize: '0.9rem',
+    fontWeight: '500',
+  },
+  hikedPrice: {
+    fontSize: '1.1rem',
+    fontWeight: '600',
+  },
   priceContainer: {
     display: 'flex',
     alignItems: 'baseline',
     justifyContent: 'center',
-    marginBottom: '2rem',
   },
   currency: {
     fontSize: '1.5rem',

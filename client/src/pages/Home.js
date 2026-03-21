@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import PlanCard from '../components/PlanCard';
 import TrainerCard from '../components/TrainerCard';
 import Footer from '../components/Footer';
+import Features from '../components/Features';
 import { Bell } from 'lucide-react';
 
 const Home = () => {
@@ -58,7 +59,7 @@ const Home = () => {
       user.membershipStatus = 'Active';
       user.plan = planTitle;
       localStorage.setItem('user', JSON.stringify(user));
-      
+
       const userDataStr = localStorage.getItem('userData');
       if (userDataStr) {
         const userData = JSON.parse(userDataStr);
@@ -76,9 +77,9 @@ const Home = () => {
   };
 
   const plans = [
-    { title: 'Basic', price: '29', features: ['Access to gym equipment', 'Locker room access', '1 group class/week', 'Free Wi-Fi'], isPopular: false },
-    { title: 'Pro', price: '59', features: ['24/7 access', 'All group classes', 'Monthy fitness assessment', 'Nutrition guide', 'Guest pass (1/month)'], isPopular: true },
-    { title: 'Elite', price: '99', features: ['Everything in Pro', '4 Personal training sessions', 'Recovery room access', 'Unlimited guest passes', 'Premium locker'], isPopular: false }
+    { title: 'Basic', price: '1999', hikedPrice: '2499', features: ['Access to gym equipment', 'Locker room access', '1 group class/week', 'Free Wi-Fi'], isPopular: false },
+    { title: 'Pro', price: '2999', hikedPrice: '3999', features: ['24/7 access', 'All group classes', 'Monthy fitness assessment', 'Nutrition guide', 'Guest pass (1/month)'], isPopular: true },
+    { title: 'Elite', price: '3999', hikedPrice: '4999', features: ['Everything in Pro', '4 Personal training sessions', 'Recovery room access', 'Unlimited guest passes', 'Premium locker'], isPopular: false }
   ];
 
   const trainers = [
@@ -89,7 +90,7 @@ const Home = () => {
 
   return (
     <div className="home-page">
-      
+
       {/* TOAST NOTIFICATION */}
       <div className={`toast-notification ${toast.show ? 'show' : ''}`}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -99,7 +100,9 @@ const Home = () => {
       </div>
 
       {/* HERO SECTION */}
-      <section id="hero" style={styles.hero} className="reveal fade-in-up">
+      <section id="hero" className="hero-section reveal fade-in-up">
+        <div className="hero-bg-image"></div>
+        <div className="hero-overlay"></div>
         <div className="container" style={styles.heroContainer}>
           <h1 style={styles.heroTitle}>Forge Your <span>Best Self</span></h1>
           <p style={styles.heroSubtitle}>Push your limits, break your boundaries, and build the physique you've always wanted at IronClad Gym.</p>
@@ -110,6 +113,9 @@ const Home = () => {
         </div>
       </section>
 
+      {/* FEATURES SECTION */}
+      <Features />
+
       {/* MEMBERSHIP SECTION */}
       <section id="membership" style={styles.section} className="reveal fade-in-up delay-1">
         <div className="container" style={{ padding: '0 32px' }}>
@@ -117,13 +123,13 @@ const Home = () => {
             <h2 style={styles.sectionTitle}>Choose Your <span>Plan</span></h2>
             <p style={styles.sectionSubtitle}>Flexible memberships to fit your fitness goals.</p>
           </div>
-          
+
           <div style={styles.grid3}>
             {plans.map((plan, idx) => (
-              <PlanCard 
-                key={idx} 
-                {...plan} 
-                onSelect={handleSelectPlan} 
+              <PlanCard
+                key={idx}
+                {...plan}
+                onSelect={handleSelectPlan}
                 isSelected={selectedPlan === plan.title}
                 isAnyPlanSelected={!!selectedPlan}
               />
@@ -133,13 +139,13 @@ const Home = () => {
       </section>
 
       {/* TRAINERS SECTION */}
-      <section id="trainers" style={{...styles.section, backgroundColor: 'var(--bg-darker)'}} className="reveal fade-in-up delay-2">
+      <section id="trainers" style={{ ...styles.section, backgroundColor: 'var(--bg-darker)' }} className="reveal fade-in-up delay-2">
         <div className="container" style={{ padding: '0 32px' }}>
           <div style={styles.sectionHeader}>
             <h2 style={styles.sectionTitle}>Meet Our <span>Trainers</span></h2>
             <p style={styles.sectionSubtitle}>Learn from the best to become the best.</p>
           </div>
-          
+
           <div style={styles.grid3}>
             {trainers.map((trainer, idx) => (
               <TrainerCard key={idx} {...trainer} />
@@ -155,19 +161,19 @@ const Home = () => {
             <h2 style={styles.sectionTitle}>Get In <span>Touch</span></h2>
             <p style={styles.sectionSubtitle}>Have questions? We're here to help you start your journey.</p>
           </div>
-          
+
           <form style={styles.contactForm} onSubmit={handleContactSubmit}>
             <div className="form-group">
               <label className="form-label" htmlFor="name">Name</label>
-              <input className="form-input" type="text" id="name" placeholder="Your name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
+              <input className="form-input" type="text" id="name" placeholder="Your name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="email">Email</label>
-              <input className="form-input" type="email" id="email" placeholder="Your email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required />
+              <input className="form-input" type="email" id="email" placeholder="Your email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="message">Message</label>
-              <textarea className="form-input" id="message" rows="5" placeholder="How can we help?" value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})} required style={{ resize: 'vertical' }} />
+              <textarea className="form-input" id="message" rows="5" placeholder="How can we help?" value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} required style={{ resize: 'vertical' }} />
             </div>
             <button type="submit" className="btn-primary interaction-btn" style={{ width: '100%' }}>Send Message</button>
           </form>
@@ -180,7 +186,6 @@ const Home = () => {
 };
 
 const styles = {
-  hero: { minHeight: '90vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at center, rgba(38, 38, 38, 0.8) 0%, rgba(10, 10, 10, 1) 100%)', position: 'relative', overflow: 'hidden' },
   heroContainer: { position: 'relative', zIndex: 10, textAlign: 'center', maxWidth: '800px', padding: '0 32px' },
   heroTitle: { fontSize: '4.5rem', fontWeight: '800', color: 'white', lineHeight: '1.1', marginBottom: '1.5rem', textTransform: 'uppercase' },
   heroSubtitle: { fontSize: '1.25rem', color: 'var(--text-muted)', marginBottom: '2.5rem', lineHeight: '1.6' },
@@ -198,6 +203,52 @@ const styleSheet = document.createElement("style");
 styleSheet.innerText = `
   h1 span, h2 span { color: var(--primary-color); }
   html { scroll-behavior: smooth; }
+  
+  /* Hero Section Enhancements */
+  .hero-section {
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .hero-bg-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&q=80&w=1920');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* Parallax effect */
+    filter: blur(2px) brightness(0.7);
+    transform: scale(1.05); /* Slight zoom to hide blur edges */
+    z-index: 1;
+    animation: slowZoom 20s ease-out forwards;
+  }
+
+  @keyframes slowZoom {
+    0% { transform: scale(1.05); }
+    100% { transform: scale(1.12); }
+  }
+  
+  .hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, rgba(0, 0, 0, 0.5) 0%, rgba(10, 10, 10, 0.95) 100%), linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(10,10,10,1) 100%);
+    z-index: 2;
+  }
+  
+  .hero-section .container {
+    z-index: 3;
+    position: relative;
+  }
   
   /* Toast Notification */
   .toast-notification {
