@@ -84,8 +84,8 @@ const Home = () => {
 
   const trainers = [
     { name: 'Dolu', specialization: 'Strength & Conditioning', description: 'Former competitive powerlifter with 10 years of experience turning beginners into beasts.', imageUrl: '/dolu.jpg' },
-    { name: 'Taarush', specialization: 'HIIT & Core', description: 'High energy coach guaranteed to make you sweat and build peak cardiovascular endurance.' },
-    { name: 'Aman', specialization: 'Mobility & Recovery', description: 'Specializes in athletic longevity, fixing imbalances, and ensuring you can lift heavy, safely.' }
+    { name: 'Taarush', specialization: 'HIIT & Core', description: 'High energy coach guaranteed to make you sweat and build peak cardiovascular endurance.', imageUrl: '/taarush.png', imagePosition: 'top' },
+    { name: 'Aman', specialization: 'Mobility & Recovery', description: 'Specializes in athletic longevity, fixing imbalances, and ensuring you can lift heavy, safely.', imageUrl: '/aman.jpg' }
   ];
 
   return (

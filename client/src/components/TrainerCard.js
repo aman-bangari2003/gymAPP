@@ -1,6 +1,6 @@
 import React from 'react';
 
-const TrainerCard = ({ name, specialization, code, description, imageUrl: customImageUrl }) => {
+const TrainerCard = ({ name, specialization, code, description, imageUrl: customImageUrl, imagePosition = 'center' }) => {
   // Using a placeholder image generator matching the dark theme vibe
   // or a custom image if provided.
   const imageUrl = customImageUrl || `https://ui-avatars.com/api/?name=${name.replace(' ', '+')}&background=141414&color=f97316&size=300`;
@@ -8,7 +8,7 @@ const TrainerCard = ({ name, specialization, code, description, imageUrl: custom
   return (
     <div style={styles.card} className="trainer-card">
       <div style={styles.imageContainer}>
-         <img src={imageUrl} alt={name} style={styles.image} />
+         <img src={imageUrl} alt={name} style={{ ...styles.image, objectPosition: imagePosition }} />
          <div style={styles.overlay}>
            <p style={styles.description}>{description}</p>
          </div>
