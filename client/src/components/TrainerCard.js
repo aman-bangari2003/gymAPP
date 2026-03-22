@@ -1,9 +1,9 @@
 import React from 'react';
 
-const TrainerCard = ({ name, specialization, code, description }) => {
+const TrainerCard = ({ name, specialization, code, description, imageUrl: customImageUrl }) => {
   // Using a placeholder image generator matching the dark theme vibe
-  // Given no real assets provided, we use unsplash source or a dark gradient placeholder
-  const imageUrl = `https://ui-avatars.com/api/?name=${name.replace(' ', '+')}&background=141414&color=f97316&size=300`;
+  // or a custom image if provided.
+  const imageUrl = customImageUrl || `https://ui-avatars.com/api/?name=${name.replace(' ', '+')}&background=141414&color=f97316&size=300`;
 
   return (
     <div style={styles.card} className="trainer-card">
