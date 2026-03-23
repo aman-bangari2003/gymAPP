@@ -2,16 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { Dumbbell, CheckCircle2 } from 'lucide-react';
 import { getUserData, completeWorkout, getWorkoutForDay, getSmartExercises } from '../utils/userStorage';
 
-const TodayWorkout = () => {
+const TodayWorkout = ({ user: userProp }) => {
+  const [user, setUser] = useState(null);
   const [isCompleted, setIsCompleted] = useState(false);
   const [workout, setWorkout] = useState(null);
   const [exercises, setExercises] = useState([]);
   const [reps, setReps] = useState('4 x 12 Reps');
 
-  useEffect(() => {
-    const data = getUserData();
+  const loadWorkoutData = (dataToUse) => {
+    const data = dataToUse || getUserData();
+    if (!data) return;
+
+    setUser(data);
     setIsCompleted(data.workoutCompletedToday);
     
+    // Reps Logic
     const exp = data.experience || 'beginner';
     if (exp === 'beginner') {
       setReps('3 x 10 Reps');
@@ -29,6 +34,22 @@ const TodayWorkout = () => {
     // Smart Touch: Refine exercises based on goal
     const tailoredExercises = getSmartExercises(dayWorkout.muscle, data.goal);
     setExercises(tailoredExercises);
+  };
+
+  useEffect(() => {
+    // Priority: use the prop if provided for instant updates
+    if (userProp) {
+      loadWorkoutData(userProp);
+    }
+  }, [userProp?.goal, userProp?.experience, userProp?.workoutCompletedToday]);
+
+  useEffect(() => {
+    // If no prop (fallback), load initially and sync with storage
+    if (!userProp) loadWorkoutData();
+
+    const handleSync = () => loadWorkoutData();
+    window.addEventListener('storage', handleSync);
+    return () => window.removeEventListener('storage', handleSync);
   }, []);
 
   const handleMarkDone = () => {
@@ -51,8 +72,16 @@ const TodayWorkout = () => {
         </div>
         <div>
           <h2 style={styles.cardTitle}>Today's <span>Workout</span></h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
-            Focus: <span style={{ color: workout.color, fontWeight: '700' }}>{workout.muscle}</span>
+          <div style={styles.badgeContainer}>
+            <span style={styles.badge}>
+              {user?.goal === 'fat_loss' ? 'Goal: Fat Loss 🔥' : 'Goal: Muscle 💪'}
+            </span>
+            <span style={styles.badge}>
+              Level: {user?.experience ? user.experience.charAt(0).toUpperCase() + user.experience.slice(1) : 'Beginner'}
+            </span>
+          </div>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '0.5rem 0 0', fontWeight: '600' }}>
+            Focus Area: <span style={{ color: workout.color, fontWeight: '700' }}>{workout.muscle}</span>
           </p>
         </div>
       </div>
@@ -115,6 +144,22 @@ const styles = {
     margin: 0,
     textTransform: 'uppercase',
     letterSpacing: '0.5px',
+  },
+  badgeContainer: {
+    display: 'flex',
+    gap: '0.75rem',
+    marginTop: '0.4rem',
+  },
+  badge: {
+    fontSize: '0.7rem',
+    color: 'var(--text-muted)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    padding: '2px 8px',
+    borderRadius: '4px',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    border: '1px solid rgba(255,255,255,0.03)',
   },
   exerciseList: {
     display: 'flex',

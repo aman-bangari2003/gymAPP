@@ -11,25 +11,18 @@ import {
   Edit3,
   Target
 } from 'lucide-react';
-import Footer from '../components/Footer';
 import TodayWorkout from '../components/TodayWorkout';
 import ProgressChart from '../components/ProgressChart';
 import { getUserData, updateUserField } from '../utils/userStorage';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const [userData, setUserData] = useState(null);
   const [timeLeft, setTimeLeft] = useState('');
   const [timerColor, setTimerColor] = useState('gray');
   const [streak, setStreak] = useState(0);
   const [saveStatus, setSaveStatus] = useState(''); // 'Saving...', 'Saved ✔', or ''
   const hasInitialized = useRef(false);
-  const [editData, setEditData] = useState({
-    weight: '',
-    height: '',
-    goal: 'muscle',
-    experience: 'beginner'
-  });
 
   const workoutSchedule = [
     { day: 'Sunday', muscle: 'Rest', color: '#94a3b8', exercises: ['Full Body Stretch', 'Light Walk', 'Meditation'] },
@@ -45,19 +38,17 @@ const Dashboard = () => {
   const todayWorkout = workoutSchedule[currentDayIndex];
 
   useEffect(() => {
-    const loadData = (isInitial = false) => {
-      const userData = getUserData();
-      if (userData) {
-        setUser(userData);
-        setStreak(userData.streak || 0);
-        
-        // Only set edit inputs once on mount or when specifically requested
-        if (isInitial && !hasInitialized.current) {
-          setEditData({
-            weight: userData.weight !== null ? String(userData.weight) : '',
-            height: userData.height !== null ? String(userData.height) : '',
-            goal: userData.goal || 'muscle',
-            experience: userData.experience || 'beginner'
+    const loadData = () => {
+      const storedData = getUserData();
+      if (storedData) {
+        setStreak(storedData.streak || 0);
+
+        if (!hasInitialized.current) {
+          // Initial full load including input strings
+          setUserData({
+            ...storedData,
+            weight: storedData.weight !== null ? String(storedData.weight) : '',
+            height: storedData.height !== null ? String(storedData.height) : ''
           });
           hasInitialized.current = true;
         }
@@ -66,29 +57,23 @@ const Dashboard = () => {
       }
     };
 
-    loadData(true); // Initial load
+    loadData();
 
-    // Listen for storage changes (keep display stats in sync, but don't touch active inputs)
-    const handleStorageChange = () => {
-      loadData(false); 
-    };
+    // Still sync if they change it in another tab, but it won't trigger every 5s
+    const handleStorageChange = () => loadData();
     window.addEventListener('storage', handleStorageChange);
-    
-    // Background sync for membership timers (display only)
-    const interval = setInterval(() => loadData(false), 5000);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
     };
   }, [navigate]);
 
   useEffect(() => {
-    if (!user || !user.expiryDate) return;
+    if (!userData || !userData.expiryDate) return;
 
     const calculateTimeLeft = () => {
       const now = new Date();
-      const expiry = new Date(user.expiryDate);
+      const expiry = new Date(userData.expiryDate);
       const diffTime = expiry - now;
 
       if (diffTime <= 0) {
@@ -109,37 +94,45 @@ const Dashboard = () => {
     calculateTimeLeft();
     const timerId = setInterval(calculateTimeLeft, 1000);
     return () => clearInterval(timerId);
-  }, [user]);
+  }, [userData?.expiryDate]);
 
-  if (!user) return null;
+  if (!userData) return null;
 
   const handleSave = () => {
     setSaveStatus('Saving...');
     
-    // Convert inputs to numbers or null
-    const weight = editData.weight === '' ? null : parseFloat(editData.weight);
-    const height = editData.height === '' ? null : parseFloat(editData.height);
+    // Parse numeric inputs for storage
+    const weightNum = userData.weight === '' ? null : parseFloat(userData.weight);
+    const heightNum = userData.height === '' ? null : parseFloat(userData.height);
     
-    // Update fields
-    updateUserField('weight', weight);
-    updateUserField('height', height);
-    updateUserField('goal', editData.goal);
-    updateUserField('experience', editData.experience);
+    const finalData = {
+      ...userData,
+      weight: weightNum,
+      height: heightNum
+    };
+
+    // Persist to localStorage
+    updateUserField('weight', weightNum);
+    updateUserField('height', heightNum);
+    updateUserField('goal', userData.goal);
+    updateUserField('experience', userData.experience);
     
     setSaveStatus('Saved ✔');
     setTimeout(() => setSaveStatus(''), 3000);
     
-    // Force local reload to update stats
-    const updated = getUserData();
-    setUser(updated);
+    // Trigger a sync for other components
+    window.dispatchEvent(new Event('storage'));
   };
 
   const getBmiData = () => {
-    if (!user.height || !user.weight) {
+    const h = parseFloat(userData.height);
+    const w = parseFloat(userData.weight);
+    
+    if (isNaN(h) || isNaN(w) || h <= 0) {
       return { value: null, status: 'Enter data to calculate', color: 'var(--text-muted)' };
     }
-    const heightInMeters = user.height / 100;
-    const bmi = (user.weight / (heightInMeters * heightInMeters)).toFixed(1);
+    const heightInMeters = h / 100;
+    const bmi = (w / (heightInMeters * heightInMeters)).toFixed(1);
     
     let status = 'Normal ✅';
     let color = '#4ade80';
@@ -167,7 +160,7 @@ const Dashboard = () => {
           {/* WELCOME HEADER */}
           <header style={styles.header}>
             <div>
-              <h1 style={styles.welcomeTitle}>Welcome back, <span>{user.name.split(' ')[0]}!</span></h1>
+              <h1 style={styles.welcomeTitle}>Welcome back, <span>{userData.name ? userData.name.split(' ')[0] : 'User'}!</span></h1>
               <p style={styles.welcomeSubtitle}>Ready to crush today's {todayWorkout.muscle} session?</p>
             </div>
             <div style={styles.dateDisplay}>
@@ -178,7 +171,7 @@ const Dashboard = () => {
 
           {/* TWO-COLUMN UPPER GRID */}
           <div style={styles.upperGrid}>
-            <TodayWorkout />
+            <TodayWorkout user={userData} />
             <ProgressChart />
           </div>
 
@@ -202,9 +195,9 @@ const Dashboard = () => {
                 <input 
                   type="number" 
                   style={styles.editInput} 
-                  value={editData.weight} 
+                  value={userData.weight} 
                   placeholder="0.0" 
-                  onChange={(e) => setEditData({...editData, weight: e.target.value})}
+                  onChange={(e) => setUserData({...userData, weight: e.target.value})}
                 />
               </div>
               <div style={styles.editCard}>
@@ -212,17 +205,17 @@ const Dashboard = () => {
                 <input 
                   type="number" 
                   style={styles.editInput} 
-                  value={editData.height} 
+                  value={userData.height} 
                   placeholder="0" 
-                  onChange={(e) => setEditData({...editData, height: e.target.value})}
+                  onChange={(e) => setUserData({...userData, height: e.target.value})}
                 />
               </div>
               <div style={styles.editCard}>
                 <div style={styles.editLabel}>Goal</div>
                 <select 
                   style={styles.editInput} 
-                  value={editData.goal} 
-                  onChange={(e) => setEditData({...editData, goal: e.target.value})}
+                  value={userData.goal} 
+                  onChange={(e) => setUserData({...userData, goal: e.target.value})}
                 >
                   <option value="muscle">Muscle Gain</option>
                   <option value="fat_loss">Fat Loss</option>
@@ -232,8 +225,8 @@ const Dashboard = () => {
                 <div style={styles.editLabel}>Experience</div>
                 <select 
                   style={styles.editInput} 
-                  value={editData.experience} 
-                  onChange={(e) => setEditData({...editData, experience: e.target.value})}
+                  value={userData.experience} 
+                  onChange={(e) => setUserData({...userData, experience: e.target.value})}
                 >
                   <option value="beginner">Beginner</option>
                   <option value="intermediate">Intermediate</option>
@@ -250,15 +243,15 @@ const Dashboard = () => {
                 <Activity size={20} color="#3b82f6" />
                 <span>Current Weight</span>
               </div>
-              {user.weight ? (
+              {userData.weight ? (
                 <>
-                  <div style={styles.statValue}>{user.weight} <span>kg</span></div>
-                  <div style={{...styles.statChange, color: '#4ade80'}}>Goal: {user.goal === 'fat_loss' ? 'Fat Loss' : 'Muscle Gain'}</div>
+                  <div style={styles.statValue}>{userData.weight} <span>kg</span></div>
+                  <div style={{...styles.statChange, color: '#4ade80'}}>Goal: {userData.goal === 'fat_loss' ? 'Fat Loss' : 'Muscle Gain'}</div>
                 </>
               ) : (
                 <>
                   <div style={styles.statValue}><span style={{fontSize: '1.2rem', color: 'var(--text-muted)'}}>No weight data</span></div>
-                  <div style={{...styles.statChange, color: '#3b82f6', cursor: 'pointer', textDecoration: 'underline'}} onClick={() => navigate('/profile')}>
+                  <div style={{...styles.statChange, color: '#3b82f6', cursor: 'pointer', textDecoration: 'underline'}} onClick={() => document.getElementById('weight-input')?.focus()}>
                     Add your weight
                   </div>
                 </>
@@ -269,8 +262,8 @@ const Dashboard = () => {
                 <Flame size={20} color="#f97316" />
                 <span>Calories Burned</span>
               </div>
-              <div style={styles.statValue}>{user.calories || 2450} <span>kcal</span></div>
-              <div style={{...styles.statChange, color: '#4ade80'}}>Level: {user.experience}</div>
+              <div style={styles.statValue}>{userData.calories || 2450} <span>kcal</span></div>
+              <div style={{...styles.statChange, color: '#4ade80'}}>Level: {userData.experience || 'Beginner'}</div>
             </div>
             <div className="dash-card stat-card" style={styles.statCard}>
               <div style={styles.statHeader}>
@@ -296,7 +289,7 @@ const Dashboard = () => {
                 <ShieldCheck size={20} color="var(--primary-color)" />
                 <span>Membership Status</span>
               </div>
-              <div style={{...styles.statValue, fontSize: '1.6rem', marginTop: '0.5rem'}}>{user.plan || 'No Plan'}</div>
+              <div style={{...styles.statValue, fontSize: '1.6rem', marginTop: '0.5rem'}}>{userData.plan || 'No Plan'}</div>
               <div style={{...styles.statChange, color: timerColor}}>{timeLeft || 'Inactive'}</div>
             </div>
           </div>
@@ -325,7 +318,6 @@ const Dashboard = () => {
 
         </div>
       </div>
-      <Footer />
     </div>
   );
 };

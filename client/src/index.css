@@ -299,3 +299,14 @@ h1 span, h2 span {
   100% { transform: rotate(360deg); } 
 }
 
+/* Sticky Footer Layout */
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+}
+

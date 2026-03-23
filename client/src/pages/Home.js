@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PlanCard from '../components/PlanCard';
 import TrainerCard from '../components/TrainerCard';
-import Footer from '../components/Footer';
 import Features from '../components/Features';
 import DurationModal from '../components/DurationModal';
 import PaymentModal from '../components/PaymentModal';
@@ -49,8 +48,6 @@ const Home = () => {
 
       {/* FEATURES SECTION */}
       <Features />
-
-      <Footer />
     </div>
   );
 };

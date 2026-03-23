@@ -45,11 +45,11 @@ const Plans = () => {
   };
 
   const handleProceedToPayment = (planTitle, durationObj) => {
-    setPaymentData({ 
-      plan: planTitle, 
-      label: durationObj.label, 
-      price: durationObj.price, 
-      months: durationObj.months 
+    setPaymentData({
+      plan: planTitle,
+      label: durationObj.label,
+      price: durationObj.price,
+      months: durationObj.months
     });
     setActiveModal('payment');
   };
@@ -76,7 +76,7 @@ const Plans = () => {
       setSelectedPlan(planTitle);
       setTempViewingPlan(null);
       setActiveModal(null);
-      
+
       showToast('Payment Successful 🎉');
       setTimeout(() => {
         navigate('/profile');
@@ -129,15 +129,15 @@ const Plans = () => {
       </section>
 
       {activeModal === 'duration' && (
-        <DurationModal 
-          plan={tempViewingPlan} 
-          onClose={() => { setActiveModal(null); setTempViewingPlan(null); }} 
-          onProceedToPayment={handleProceedToPayment} 
+        <DurationModal
+          plan={tempViewingPlan}
+          onClose={() => { setActiveModal(null); setTempViewingPlan(null); }}
+          onProceedToPayment={handleProceedToPayment}
         />
       )}
 
       {activeModal === 'payment' && paymentData && (
-        <PaymentModal 
+        <PaymentModal
           plan={paymentData.plan}
           duration={paymentData.label}
           price={paymentData.price}

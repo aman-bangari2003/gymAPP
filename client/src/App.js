@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import Plans from './pages/Plans';
 import Trainers from './pages/Trainers';
 import Contact from './pages/Contact';
+import Footer from './components/Footer';
 import { getUserData, isUserLoggedIn } from './utils/userStorage';
 
 function App() {
@@ -32,8 +33,10 @@ function App() {
       if (user.membershipStatus !== 'Expired') {
         const userStr = localStorage.getItem('user');
         const userData = JSON.parse(userStr);
-        userData.membershipStatus = 'Expired';
-        localStorage.setItem('user', JSON.stringify(userData));
+        if (userData) {
+          userData.membershipStatus = 'Expired';
+          localStorage.setItem('user', JSON.stringify(userData));
+        }
         
         // Sync legacy key
         const legacyDataStr = localStorage.getItem('userData');
@@ -51,36 +54,41 @@ function App() {
       <ScrollToTop />
       <div className="App">
         <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          
-          <Route path="/plans" element={<Plans />} />
-          <Route path="/trainers" element={<Trainers />} />
-          <Route path="/contact" element={<Contact />} />
-          
-          <Route 
-            path="/profile" 
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Catch all route */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        
+        <div className="main-content">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            
+            <Route path="/plans" element={<Plans />} />
+            <Route path="/trainers" element={<Trainers />} />
+            <Route path="/contact" element={<Contact />} />
+            
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Catch all route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+
+        <Footer />
       </div>
     </Router>
   );

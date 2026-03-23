@@ -65,11 +65,14 @@ const styles = {
   info: {
     padding: '1.5rem',
     textAlign: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
   },
   name: {
     fontSize: '1.25rem',
     color: 'white',
-    marginBottom: '0.25rem',
+    lineHeight: '1.3',
   },
   specialization: {
     color: 'var(--primary-color)',
@@ -77,6 +80,8 @@ const styles = {
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: '1px',
+    lineHeight: '1.4',
+    marginTop: '6px',
   }
 };
 

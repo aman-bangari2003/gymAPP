@@ -188,24 +188,29 @@ export const getWorkoutForDay = (dayIndex) => {
  * Customizes exercises based on user goals.
  */
 export const getSmartExercises = (muscle, goal) => {
-  const workout = Object.values({
-    0: { muscle: 'Rest', exercises: ['Stretch', 'Walk', 'Meditation'] },
-    1: { muscle: 'Chest', exercises: ['Bench Press', 'Incline Fly', 'Push-ups'] },
-    2: { muscle: 'Back', exercises: ['Pull-ups', 'Deadlift', 'Rows'] },
-    3: { muscle: 'Legs', exercises: ['Squats', 'Lunges', 'Leg Press'] },
-    4: { muscle: 'Shoulders', exercises: ['Shoulder Press', 'Lateral Raise', 'Front Raise'] },
-    5: { muscle: 'Arms', exercises: ['Bicep Curl', 'Tricep Pushdown', 'Hammer Curl'] },
-    6: { muscle: 'Cardio', exercises: ['Run', 'Cycle', 'HIIT'] },
-  }).find(w => w.muscle === muscle);
-
-  if (!workout) return [];
-
-  // Goal-based refinement
-  if (goal === 'fat_loss') {
-    return [...workout.exercises.slice(0, 2), 'HIIT Burner'];
-  } else if (goal === 'muscle') {
-    return [...workout.exercises.slice(0, 2), 'Heavy Overload'];
-  }
+  const isFatLoss = goal === 'fat_loss';
   
-  return workout.exercises;
+  const exercisesMap = {
+    'Chest': isFatLoss 
+      ? ['Push-ups', 'Burpees', 'Mountain Climbers', '10 min Light Cardio'] 
+      : ['Bench Press', 'Incline Dumbbell Press', 'Chest Flys'],
+    'Back': isFatLoss
+      ? ['Pull-ups (Assisted)', 'Kettlebell Swings', 'Jump Rope', '10 min Light Cardio']
+      : ['Deadlifts', 'Bent Over Rows', 'Lat Pulldowns'],
+    'Legs': isFatLoss
+      ? ['Bodyweight Squats', 'Laps around Gym', 'Box Jumps', '10 min Light Cardio']
+      : ['Barbell Squats', 'Leg Press', 'Lunges'],
+    'Shoulders': isFatLoss
+      ? ['Dumbbell Press', 'Shadow Boxing', 'High Knees', '10 min Light Cardio']
+      : ['Military Press', 'Lateral Raises', 'Front Raises'],
+    'Arms': isFatLoss
+      ? ['Bicep Curls', 'Tricep Dips', 'Battle Ropes', '10 min Light Cardio']
+      : ['Hammer Curls', 'Skull Crushers', 'Preacher Curls'],
+    'Cardio': isFatLoss
+      ? ['20 min HIIT Run', 'Sprints', 'Burpee Challenge']
+      : ['15 min Moderate Jog', 'Cycling', 'Steady Row'],
+    'Rest': ['Full Body Stretch', 'Light Walk', 'Meditation']
+  };
+
+  return exercisesMap[muscle] || exercisesMap['Rest'];
 };
