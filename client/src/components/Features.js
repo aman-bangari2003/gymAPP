@@ -23,7 +23,7 @@ const Features = () => {
         {
             icon: <Clock size={40} color="#fff" />,
             title: "Convenience",
-            description: "With 24/7 access to our worldwide clubs, you can workout on your terms. Fitness has never been so easy. Whether you are a night owl or an early riser, our doors are always open for your convenience.",
+            description: "With flexible workout hours at our clubs, you can train on your terms. From early morning to late night, our doors are open to fit your busy schedule.",
             bgColor: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
             shadowColor: "rgba(240, 147, 251, 0.4)",
             bgImage: "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&q=80&w=800"
