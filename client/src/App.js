@@ -2,11 +2,15 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
+import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import Dashboard from './pages/Dashboard';
+import Plans from './pages/Plans';
+import Trainers from './pages/Trainers';
+import Contact from './pages/Contact';
 import { getUserData, isUserLoggedIn } from './utils/userStorage';
 
 function App() {
@@ -44,21 +48,17 @@ function App() {
 
   return (
     <Router>
+      <ScrollToTop />
       <div className="App">
         <Navbar />
         <Routes>
-          <Route path="/" element={<Navigate to={isUserLoggedIn() ? "/dashboard" : "/login"} replace />} />
+          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           
-          <Route 
-            path="/home" 
-            element={
-              <ProtectedRoute>
-                <Home />
-              </ProtectedRoute>
-            } 
-          />
+          <Route path="/plans" element={<Plans />} />
+          <Route path="/trainers" element={<Trainers />} />
+          <Route path="/contact" element={<Contact />} />
           
           <Route 
             path="/profile" 
@@ -79,7 +79,7 @@ function App() {
           />
           
           {/* Catch all route */}
-          <Route path="*" element={<Navigate to={isUserLoggedIn() ? "/dashboard" : "/login"} replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </Router>

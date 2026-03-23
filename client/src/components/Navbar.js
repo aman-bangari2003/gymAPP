@@ -6,50 +6,52 @@ import { isUserLoggedIn } from '../utils/userStorage';
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeSection, setActiveSection] = useState('hero');
   const isAuthenticated = isUserLoggedIn();
 
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (isAuthPage || location.pathname !== '/home') return;
-      const sections = ['hero', 'membership', 'trainers', 'contact'];
-      let current = 'hero';
-      for (const section of sections) {
-        const element = document.getElementById(section);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          if (rect.top <= 200 && rect.bottom >= 200) {
-            current = section;
-          }
-        }
-      }
-      setActiveSection(current);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [isAuthPage, location]);
-
   return (
     <nav style={styles.nav}>
       <div className="container" style={styles.container}>
-        <Link to={isAuthenticated ? '/home' : '/login'} style={styles.logo} className="nav-logo">
+        <Link to="/" style={styles.logo} className="nav-logo">
           <Dumbbell size={28} color="var(--primary-color)" />
           <span style={styles.logoText}>IronClad</span>
         </Link>
 
-        {!isAuthPage && isAuthenticated && (
-          <ul style={styles.navLinks}>
-            <li>
-              <Link 
-                to="/home" 
-                className={`nav-link ${location.pathname === '/home' ? 'active' : ''}`}
-              >
-                Home
-              </Link>
-            </li>
+        <ul style={styles.navLinks}>
+          <li>
+            <Link 
+              to="/" 
+              className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
+            >
+              Home
+            </Link>
+          </li>
+          <li>
+            <Link 
+              to="/plans" 
+              className={`nav-link ${location.pathname === '/plans' ? 'active' : ''}`}
+            >
+              Plans
+            </Link>
+          </li>
+          <li>
+            <Link 
+              to="/trainers" 
+              className={`nav-link ${location.pathname === '/trainers' ? 'active' : ''}`}
+            >
+              Trainers
+            </Link>
+          </li>
+          <li>
+            <Link 
+              to="/contact" 
+              className={`nav-link ${location.pathname === '/contact' ? 'active' : ''}`}
+            >
+              Contact
+            </Link>
+          </li>
+          {isAuthenticated && (
             <li>
               <Link 
                 to="/dashboard" 
@@ -58,18 +60,8 @@ const Navbar = () => {
                 Dashboard
               </Link>
             </li>
-            {location.pathname === '/home' && ['membership', 'trainers', 'contact'].map(sec => (
-              <li key={sec}>
-                <a 
-                  href={`#${sec}`} 
-                  className={`nav-link ${activeSection === sec ? 'active' : ''}`}
-                >
-                  {(sec.charAt(0).toUpperCase() + sec.slice(1)).replace('Membership', 'Plans')}
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
+          )}
+        </ul>
 
         <div style={styles.actions}>
           {isAuthenticated ? (
@@ -79,8 +71,8 @@ const Navbar = () => {
             </Link>
           ) : (
             <div style={styles.authLinks}>
-              <Link to="/login" className="nav-link">Login</Link>
-              <Link to="/signup" className="btn-primary" style={{ padding: '0.5rem 1rem' }}>Join Now</Link>
+              {!isAuthPage && <Link to="/login" className="nav-link">Login</Link>}
+              {!isAuthPage && <Link to="/signup" className="btn-primary" style={{ padding: '0.5rem 1rem' }}>Join Now</Link>}
             </div>
           )}
         </div>

@@ -208,3 +208,94 @@ input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* Global Fitness Theme Enhancements */
+h1 span, h2 span { 
+  color: var(--primary-color); 
+}
+
+/* Reveal Animations */
+.reveal { 
+  opacity: 0; 
+  transform: translateY(40px); 
+  transition: all 1s ease-out; 
+}
+
+.reveal.visible { 
+  opacity: 1; 
+  transform: translateY(0); 
+}
+
+.delay-1 { transition-delay: 0.1s; }
+.delay-2 { transition-delay: 0.2s; }
+
+/* Toast Notification */
+.toast-notification {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background-color: var(--bg-card);
+  border-left: 4px solid var(--primary-color);
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(249, 115, 22, 0.1);
+  transform: translateX(120%);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 2000;
+}
+
+.toast-notification.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* Modal Overlays */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+}
+
+.modal-content {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 2.5rem;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 800px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.payment-modal { 
+  max-width: 500px; 
+}
+
+@keyframes modalPop {
+  0% { opacity: 0; transform: scale(0.95) translateY(20px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Common Interactions */
+.interaction-btn {
+  cursor: pointer;
+  border: none;
+}
+
+.spin { 
+  animation: spin 1s linear infinite; 
+}
+
+@keyframes spin { 
+  100% { transform: rotate(360deg); } 
+}
+

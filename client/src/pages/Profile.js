@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User, ArrowLeft, ShieldCheck, ShieldAlert, Crown, Flame, Dumbbell, CalendarDays, Edit3, Target, Award as AwardIcon } from 'lucide-react';
+import { LogOut, User, ArrowLeft, ShieldCheck, ShieldAlert, Crown, Flame, Dumbbell, CalendarDays, Target, Activity, Award as AwardIcon } from 'lucide-react';
 import { getUserData, updateUserField, isUserLoggedIn } from '../utils/userStorage';
 
 const Profile = () => {
@@ -131,89 +131,39 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* PERSONAL STATS SECTION */}
-        <div style={styles.statsEditGrid}>
-          <div style={styles.editCard}>
-            <div style={styles.editLabel}>
-              <Edit3 size={16} /> <span>Current Weight (kg)</span>
+        {/* PERSONAL STATS SECTION (READ-ONLY) */}
+        <div style={styles.statsDisplayGrid}>
+          <div style={styles.displayCard}>
+            <div style={styles.displayLabel}>
+              <Activity size={16} /> <span>Current Weight</span>
             </div>
-            <input 
-              type="number" 
-              style={styles.editInput} 
-              value={user.weight !== undefined && user.weight !== null ? user.weight : ''} 
-              placeholder="Enter weight"
-              onChange={(e) => {
-                const val = e.target.value;
-                setUser({ ...user, weight: val });
-              }}
-              onBlur={(e) => {
-                const val = e.target.value;
-                if (!val) {
-                  handleFieldChange('weight', null);
-                } else {
-                  let num = parseFloat(val);
-                  if (isNaN(num) || num <= 0 || num < 20 || num > 300) {
-                    handleFieldChange('weight', null);
-                  } else {
-                    handleFieldChange('weight', num);
-                  }
-                }
-              }}
-            />
-          </div>
-          <div style={styles.editCard}>
-            <div style={styles.editLabel}>
-              <Edit3 size={16} /> <span>Height (cm)</span>
+            <div style={styles.displayText}>
+              {user.weight ? `${user.weight} kg` : <span style={{color: 'var(--text-muted)'}}>Not set yet</span>}
             </div>
-            <input 
-              type="number" 
-              style={styles.editInput} 
-              value={user.height !== undefined && user.height !== null ? user.height : ''} 
-              placeholder="Enter height"
-              onChange={(e) => {
-                const val = e.target.value;
-                setUser({ ...user, height: val });
-              }}
-              onBlur={(e) => {
-                const val = e.target.value;
-                if (!val) {
-                  handleFieldChange('height', null);
-                } else {
-                  let num = parseFloat(val);
-                  if (isNaN(num)) num = null;
-                  else if (num < 100) num = 100;
-                  else if (num > 250) num = 250;
-                  handleFieldChange('height', num);
-                }
-              }}
-            />
           </div>
-          <div style={styles.editCard}>
-            <div style={styles.editLabel}>
+          <div style={styles.displayCard}>
+            <div style={styles.displayLabel}>
+              <ArrowLeft size={16} style={{transform: 'rotate(90deg)'}} /> <span>Height</span>
+            </div>
+            <div style={styles.displayText}>
+              {user.height ? `${user.height} cm` : <span style={{color: 'var(--text-muted)'}}>Not set yet</span>}
+            </div>
+          </div>
+          <div style={styles.displayCard}>
+            <div style={styles.displayLabel}>
               <Target size={16} /> <span>Fitness Goal</span>
             </div>
-            <select 
-              style={styles.editInput} 
-              value={user.goal || 'muscle'} 
-              onChange={(e) => handleFieldChange('goal', e.target.value)}
-            >
-              <option value="muscle">Muscle Gain</option>
-              <option value="fat_loss">Fat Loss</option>
-            </select>
+            <div style={styles.displayText}>
+              {user.goal ? (user.goal === 'fat_loss' ? 'Fat Loss' : 'Muscle Gain') : <span style={{color: 'var(--text-muted)'}}>Not set yet</span>}
+            </div>
           </div>
-          <div style={styles.editCard}>
-            <div style={styles.editLabel}>
+          <div style={styles.displayCard}>
+            <div style={styles.displayLabel}>
               <AwardIcon size={16} /> <span>Experience</span>
             </div>
-            <select 
-              style={styles.editInput} 
-              value={user.experience || 'beginner'} 
-              onChange={(e) => handleFieldChange('experience', e.target.value)}
-            >
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="advanced">Advanced</option>
-            </select>
+            <div style={styles.displayText}>
+              {user.experience ? (user.experience.charAt(0).toUpperCase() + user.experience.slice(1)) : <span style={{color: 'var(--text-muted)'}}>Not set yet</span>}
+            </div>
           </div>
         </div>
         
@@ -342,10 +292,10 @@ const styles = {
   email: { color: 'var(--text-muted)', fontSize: '1rem', margin: 0 },
   memberSince: { display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '500', backgroundColor: 'var(--bg-darker)', padding: '4px 10px', borderRadius: '6px', width: 'fit-content', border: '1px solid var(--border-color)' },
   
-  statsEditGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.5rem', marginBottom: '3rem' },
-  editCard: { backgroundColor: 'rgba(0,0,0,0.3)', padding: '1.25rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' },
-  editLabel: { display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '1px' },
-  editInput: { width: '100%', backgroundColor: 'transparent', border: 'none', borderBottom: '1px solid rgba(249, 115, 22, 0.2)', color: 'white', fontSize: '1.1rem', fontWeight: '600', padding: '4px 0', outline: 'none', cursor: 'pointer' },
+  statsDisplayGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.5rem', marginBottom: '3rem' },
+  displayCard: { backgroundColor: 'rgba(0,0,0,0.3)', padding: '1.25rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' },
+  displayLabel: { display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '1px' },
+  displayText: { color: 'white', fontSize: '1.2rem', fontWeight: '800' },
   
   detailsSection: { display: 'flex', flexDirection: 'column', gap: '2rem', marginBottom: '3.5rem' },
   detailCard: { backgroundColor: 'rgba(10, 10, 10, 0.4)', borderRadius: '16px', padding: '2rem', border: '1px solid rgba(255, 255, 255, 0.05)', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.2)' },

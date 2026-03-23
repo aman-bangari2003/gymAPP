@@ -1,5 +1,6 @@
 import React from 'react';
 import { Dumbbell, Instagram, Twitter, Facebook } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
@@ -23,10 +24,11 @@ const Footer = () => {
         <div style={styles.links}>
           <h4 style={styles.heading}>Quick Links</h4>
           <ul style={styles.list}>
-            <li><a href="#hero" style={styles.link}>Home</a></li>
-            <li><a href="#membership" style={styles.link}>Membership Plans</a></li>
-            <li><a href="#trainers" style={styles.link}>Our Trainers</a></li>
-            <li><a href="#contact" style={styles.link}>Contact Us</a></li>
+            <li><Link to="/" style={styles.link}>Home</Link></li>
+            <li><Link to="/plans" style={styles.link}>Membership Plans</Link></li>
+            <li><Link to="/trainers" style={styles.link}>Our Trainers</Link></li>
+            <li><Link to="/contact" style={styles.link}>Contact Us</Link></li>
+            <li><Link to="/dashboard" style={styles.link}>Dashboard</Link></li>
           </ul>
         </div>
         

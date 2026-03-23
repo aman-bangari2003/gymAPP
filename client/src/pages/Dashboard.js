@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Flame, 
@@ -7,12 +7,14 @@ import {
   Activity, 
   Award,
   TrendingUp,
-  ShieldCheck
+  ShieldCheck,
+  Edit3,
+  Target
 } from 'lucide-react';
 import Footer from '../components/Footer';
 import TodayWorkout from '../components/TodayWorkout';
 import ProgressChart from '../components/ProgressChart';
-import { getUserData } from '../utils/userStorage';
+import { getUserData, updateUserField } from '../utils/userStorage';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -20,6 +22,14 @@ const Dashboard = () => {
   const [timeLeft, setTimeLeft] = useState('');
   const [timerColor, setTimerColor] = useState('gray');
   const [streak, setStreak] = useState(0);
+  const [saveStatus, setSaveStatus] = useState(''); // 'Saving...', 'Saved ✔', or ''
+  const hasInitialized = useRef(false);
+  const [editData, setEditData] = useState({
+    weight: '',
+    height: '',
+    goal: 'muscle',
+    experience: 'beginner'
+  });
 
   const workoutSchedule = [
     { day: 'Sunday', muscle: 'Rest', color: '#94a3b8', exercises: ['Full Body Stretch', 'Light Walk', 'Meditation'] },
@@ -35,26 +45,37 @@ const Dashboard = () => {
   const todayWorkout = workoutSchedule[currentDayIndex];
 
   useEffect(() => {
-    const loadData = () => {
+    const loadData = (isInitial = false) => {
       const userData = getUserData();
       if (userData) {
         setUser(userData);
         setStreak(userData.streak || 0);
+        
+        // Only set edit inputs once on mount or when specifically requested
+        if (isInitial && !hasInitialized.current) {
+          setEditData({
+            weight: userData.weight !== null ? String(userData.weight) : '',
+            height: userData.height !== null ? String(userData.height) : '',
+            goal: userData.goal || 'muscle',
+            experience: userData.experience || 'beginner'
+          });
+          hasInitialized.current = true;
+        }
       } else {
         navigate('/login');
       }
     };
 
-    loadData();
+    loadData(true); // Initial load
 
-    // Listen for storage changes
+    // Listen for storage changes (keep display stats in sync, but don't touch active inputs)
     const handleStorageChange = () => {
-      loadData();
+      loadData(false); 
     };
     window.addEventListener('storage', handleStorageChange);
     
-    // Smooth sync
-    const interval = setInterval(handleStorageChange, 2000);
+    // Background sync for membership timers (display only)
+    const interval = setInterval(() => loadData(false), 5000);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
@@ -92,9 +113,30 @@ const Dashboard = () => {
 
   if (!user) return null;
 
+  const handleSave = () => {
+    setSaveStatus('Saving...');
+    
+    // Convert inputs to numbers or null
+    const weight = editData.weight === '' ? null : parseFloat(editData.weight);
+    const height = editData.height === '' ? null : parseFloat(editData.height);
+    
+    // Update fields
+    updateUserField('weight', weight);
+    updateUserField('height', height);
+    updateUserField('goal', editData.goal);
+    updateUserField('experience', editData.experience);
+    
+    setSaveStatus('Saved ✔');
+    setTimeout(() => setSaveStatus(''), 3000);
+    
+    // Force local reload to update stats
+    const updated = getUserData();
+    setUser(updated);
+  };
+
   const getBmiData = () => {
-    if (!user.height) {
-      return { value: null, status: 'Enter height to calculate', color: 'var(--text-muted)' };
+    if (!user.height || !user.weight) {
+      return { value: null, status: 'Enter data to calculate', color: 'var(--text-muted)' };
     }
     const heightInMeters = user.height / 100;
     const bmi = (user.weight / (heightInMeters * heightInMeters)).toFixed(1);
@@ -138,6 +180,67 @@ const Dashboard = () => {
           <div style={styles.upperGrid}>
             <TodayWorkout />
             <ProgressChart />
+          </div>
+
+          {/* FITNESS CONTROL PANEL */}
+          <div className="dash-card" style={styles.controlPanel}>
+            <div style={styles.cardHeader}>
+              <div style={styles.cardIconWrapper}>
+                <Edit3 size={24} color="var(--primary-color)" />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                <h2 style={styles.cardTitle}>Fitness <span>Control Panel</span></h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  {saveStatus && <span style={{ color: '#4ade80', fontWeight: '700', fontSize: '0.9rem' }}>{saveStatus}</span>}
+                  <button onClick={handleSave} className="btn-primary" style={{ padding: '0.6rem 1.5rem', fontSize: '0.9rem' }}>Save Changes</button>
+                </div>
+              </div>
+            </div>
+            <div style={styles.inputGrid}>
+              <div style={styles.editCard}>
+                <div style={styles.editLabel}>Weight (kg)</div>
+                <input 
+                  type="number" 
+                  style={styles.editInput} 
+                  value={editData.weight} 
+                  placeholder="0.0" 
+                  onChange={(e) => setEditData({...editData, weight: e.target.value})}
+                />
+              </div>
+              <div style={styles.editCard}>
+                <div style={styles.editLabel}>Height (cm)</div>
+                <input 
+                  type="number" 
+                  style={styles.editInput} 
+                  value={editData.height} 
+                  placeholder="0" 
+                  onChange={(e) => setEditData({...editData, height: e.target.value})}
+                />
+              </div>
+              <div style={styles.editCard}>
+                <div style={styles.editLabel}>Goal</div>
+                <select 
+                  style={styles.editInput} 
+                  value={editData.goal} 
+                  onChange={(e) => setEditData({...editData, goal: e.target.value})}
+                >
+                  <option value="muscle">Muscle Gain</option>
+                  <option value="fat_loss">Fat Loss</option>
+                </select>
+              </div>
+              <div style={styles.editCard}>
+                <div style={styles.editLabel}>Experience</div>
+                <select 
+                  style={styles.editInput} 
+                  value={editData.experience} 
+                  onChange={(e) => setEditData({...editData, experience: e.target.value})}
+                >
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="advanced">Advanced</option>
+                </select>
+              </div>
+            </div>
           </div>
 
           {/* PROGRESS & STATUS STATS GRID */}
@@ -236,6 +339,11 @@ const styles = {
   welcomeSubtitle: { color: 'var(--text-muted)', fontSize: '1.1rem', margin: '0.5rem 0 0' },
   dateDisplay: { display: 'flex', alignItems: 'center', gap: '0.8rem', backgroundColor: 'var(--bg-card)', padding: '0.75rem 1.25rem', borderRadius: '10px', border: '1px solid var(--border-color)', color: 'white', fontWeight: '600' },
   upperGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', marginBottom: '2.5rem' },
+  controlPanel: { backgroundColor: 'var(--bg-card)', padding: '2rem', borderRadius: '16px', border: '1px solid var(--border-color)', marginBottom: '2.5rem' },
+  inputGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginTop: '1rem' },
+  editCard: { backgroundColor: 'rgba(0,0,0,0.2)', padding: '1.25rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.03)' },
+  editLabel: { color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '1px' },
+  editInput: { width: '100%', backgroundColor: 'transparent', border: 'none', borderBottom: '1px solid rgba(249, 115, 22, 0.2)', color: 'white', fontSize: '1.1rem', fontWeight: '600', padding: '4px 0', outline: 'none' },
   statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' },
   weeklyPlanCard: { backgroundColor: 'var(--bg-card)', padding: '2rem', borderRadius: '16px', border: '1px solid var(--border-color)', marginTop: '2.5rem' },
   cardHeader: { display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' },
