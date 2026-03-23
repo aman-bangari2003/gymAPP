@@ -92,6 +92,31 @@ const Dashboard = () => {
 
   if (!user) return null;
 
+  const getBmiData = () => {
+    if (!user.height) {
+      return { value: null, status: 'Enter height to calculate', color: 'var(--text-muted)' };
+    }
+    const heightInMeters = user.height / 100;
+    const bmi = (user.weight / (heightInMeters * heightInMeters)).toFixed(1);
+    
+    let status = 'Normal ✅';
+    let color = '#4ade80';
+    if (bmi < 18.5) {
+      status = 'Underweight';
+      color = '#3b82f6';
+    } else if (bmi >= 25 && bmi < 30) {
+      status = 'Overweight ⚠️';
+      color = '#f59e0b';
+    } else if (bmi >= 30) {
+      status = 'Obese ❌';
+      color = '#ef4444';
+    }
+    
+    return { value: bmi, status, color };
+  };
+
+  const bmiData = getBmiData();
+
   return (
     <div className="dashboard-page" style={styles.pageWrapper}>
       <div style={styles.contentWrapper}>
@@ -142,6 +167,15 @@ const Dashboard = () => {
               <div style={{...styles.statChange, color: 'var(--text-muted)'}}>Keep it up! ⚡</div>
             </div>
             
+            {/* BMI CARD */}
+            <div className="dash-card stat-card" style={styles.statCard}>
+              <div style={styles.statHeader}>
+                <Activity size={20} color="#8b5cf6" />
+                <span>BMI</span>
+              </div>
+              <div style={styles.statValue}>{bmiData.value || '--'}</div>
+              <div style={{...styles.statChange, color: bmiData.color}}>Status: {bmiData.status}</div>
+            </div>
             {/* INTEGRATED MEMBERSHIP CARD */}
             <div className="dash-card stat-card" style={{...styles.statCard, cursor: 'pointer'}} onClick={() => navigate('/profile')}>
               <div style={styles.statHeader}>

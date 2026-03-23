@@ -22,6 +22,7 @@ const Login = () => {
           membershipStatus: user.membershipStatus || 'Inactive',
           plan: user.plan || null
         }));
+        localStorage.setItem('isLoggedIn', 'true');
         navigate('/home');
         return;
       }
@@ -35,6 +36,7 @@ const Login = () => {
         membershipStatus: 'Inactive',
         plan: null
       }));
+      localStorage.setItem('isLoggedIn', 'true');
       navigate('/home');
     } else {
       setError('Invalid email or password. Please try again or create an account.');

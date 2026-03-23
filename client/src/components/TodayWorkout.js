@@ -6,11 +6,21 @@ const TodayWorkout = () => {
   const [isCompleted, setIsCompleted] = useState(false);
   const [workout, setWorkout] = useState(null);
   const [exercises, setExercises] = useState([]);
+  const [reps, setReps] = useState('4 x 12 Reps');
 
   useEffect(() => {
     const data = getUserData();
     setIsCompleted(data.workoutCompletedToday);
     
+    const exp = data.experience || 'beginner';
+    if (exp === 'beginner') {
+      setReps('3 x 10 Reps');
+    } else if (exp === 'advanced') {
+      setReps('5 x 15 Reps');
+    } else {
+      setReps('4 x 12 Reps');
+    }
+
     // Get workout based on current day
     const currentDay = new Date().getDay();
     const dayWorkout = getWorkoutForDay(currentDay);
@@ -52,7 +62,7 @@ const TodayWorkout = () => {
           <div key={i} style={styles.exerciseItem}>
             <div style={{...styles.dot, backgroundColor: workout.color}}></div>
             <span style={styles.exerciseText}>{ex}</span>
-            <span style={styles.reps}>4 x 12 Reps</span>
+            <span style={styles.reps}>{reps}</span>
           </div>
         ))}
       </div>

@@ -11,6 +11,10 @@ const Profile = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
 
   useEffect(() => {
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+      navigate('/login');
+      return;
+    }
     const data = getUserData();
     if (data) {
       setUser(data);
@@ -51,6 +55,11 @@ const Profile = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('userData');
+    localStorage.removeItem('weightHistory');
+    localStorage.removeItem('workoutStreak');
+    localStorage.removeItem('todayWorkoutCompleted');
+    localStorage.setItem('isLoggedIn', 'false');
     navigate('/login');
   };
 
@@ -97,7 +106,7 @@ const Profile = () => {
       
       <button className="back-btn sticky-back" onClick={() => navigate('/home')} style={styles.backBtnFixed}>
         <ArrowLeft size={20} />
-        ← Back
+        Back
       </button>
 
       <div style={styles.headerTitle}>
@@ -131,8 +140,51 @@ const Profile = () => {
             <input 
               type="number" 
               style={styles.editInput} 
-              value={user.weight || 75} 
-              onChange={(e) => handleFieldChange('weight', parseFloat(e.target.value))}
+              value={user.weight !== undefined && user.weight !== null ? user.weight : ''} 
+              placeholder="Enter weight"
+              onChange={(e) => {
+                const val = e.target.value;
+                setUser({ ...user, weight: val });
+              }}
+              onBlur={(e) => {
+                const val = e.target.value;
+                if (!val) {
+                  handleFieldChange('weight', 75); // fallback
+                } else {
+                  let num = parseFloat(val);
+                  if (isNaN(num)) num = 75;
+                  if (num < 20) num = 20;
+                  if (num > 200) num = 200;
+                  handleFieldChange('weight', num);
+                }
+              }}
+            />
+          </div>
+          <div style={styles.editCard}>
+            <div style={styles.editLabel}>
+              <Edit3 size={16} /> <span>Height (cm)</span>
+            </div>
+            <input 
+              type="number" 
+              style={styles.editInput} 
+              value={user.height !== undefined && user.height !== null ? user.height : ''} 
+              placeholder="Enter height"
+              onChange={(e) => {
+                const val = e.target.value;
+                setUser({ ...user, height: val });
+              }}
+              onBlur={(e) => {
+                const val = e.target.value;
+                if (!val) {
+                  handleFieldChange('height', null);
+                } else {
+                  let num = parseFloat(val);
+                  if (isNaN(num)) num = null;
+                  else if (num < 100) num = 100;
+                  else if (num > 250) num = 250;
+                  handleFieldChange('height', num);
+                }
+              }}
             />
           </div>
           <div style={styles.editCard}>

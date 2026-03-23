@@ -11,6 +11,15 @@ import { getUserData } from './utils/userStorage';
 
 function App() {
   useEffect(() => {
+    // Top-level cleanup for auth consistency
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+      localStorage.removeItem('user');
+      localStorage.removeItem('userData');
+      localStorage.removeItem('weightHistory');
+      localStorage.removeItem('workoutStreak');
+      localStorage.removeItem('todayWorkoutCompleted');
+    }
+
     // Global user initialization and daily workout reset
     const user = getUserData();
     

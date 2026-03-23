@@ -6,7 +6,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeSection, setActiveSection] = useState('hero');
-  const isAuthenticated = localStorage.getItem('user');
+  const isAuthenticated = localStorage.getItem('isLoggedIn') === 'true';
 
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
 

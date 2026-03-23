@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LineChart, 
   Line, 
@@ -11,17 +11,37 @@ import {
   Area
 } from 'recharts';
 import { TrendingUp } from 'lucide-react';
+import { getWeightHistory } from '../utils/userStorage';
 
 const ProgressChart = () => {
-  const data = [
-    { day: 'Mon', weight: 79.0 },
-    { day: 'Tue', weight: 78.8 },
-    { day: 'Wed', weight: 78.6 },
-    { day: 'Thu', weight: 78.5 },
-    { day: 'Fri', weight: 78.4 },
-    { day: 'Sat', weight: 78.2 },
-    { day: 'Sun', weight: 78.1 },
-  ];
+  const [data, setData] = useState([]);
+  const [stats, setStats] = useState({ totalChange: '0.0', avg: '0.0' });
+
+  useEffect(() => {
+    const loadData = () => {
+      const history = getWeightHistory();
+      const formattedData = history.map((w, i) => ({
+        day: `Day ${i + 1}`,
+        weight: w
+      }));
+      setData(formattedData);
+
+      if (history.length > 0) {
+        const first = history[0];
+        const last = history[history.length - 1];
+        const change = (last - first).toFixed(1);
+        
+        const sum = history.reduce((a, b) => a + b, 0);
+        const avg = (sum / history.length).toFixed(1);
+
+        setStats({ totalChange: change, avg });
+      }
+    };
+
+    loadData();
+    window.addEventListener('storage', loadData);
+    return () => window.removeEventListener('storage', loadData);
+  }, []);
 
   return (
     <div className="dash-card" style={styles.card}>
@@ -80,11 +100,11 @@ const ProgressChart = () => {
       <div style={styles.chartFooter}>
         <div style={styles.footerStat}>
           <span style={styles.footerLabel}>Total Change</span>
-          <span style={styles.footerValue}>-0.9 kg</span>
+          <span style={styles.footerValue}>{stats.totalChange > 0 ? '+' : ''}{stats.totalChange} kg</span>
         </div>
         <div style={styles.footerStat}>
           <span style={styles.footerLabel}>Weekly Avg</span>
-          <span style={styles.footerValue}>78.5 kg</span>
+          <span style={styles.footerValue}>{stats.avg} kg</span>
         </div>
       </div>
     </div>

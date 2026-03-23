@@ -8,11 +8,16 @@ const STORAGE_KEY = 'user';
  * Initializes or retrieves user data from localStorage.
  */
 export const getUserData = () => {
+  if (localStorage.getItem('isLoggedIn') !== 'true') {
+    return null;
+  }
+
   const data = localStorage.getItem(STORAGE_KEY);
   if (!data) {
     const defaultData = {
       name: "User",
       weight: 75,
+      height: null,
       calories: 2000,
       streak: 0,
       goal: "muscle", // "muscle" | "fat_loss"
@@ -46,12 +51,43 @@ export const setUserData = (data) => {
 };
 
 /**
+ * Gets the chronological weight history array.
+ */
+export const getWeightHistory = () => {
+  const history = localStorage.getItem('weightHistory');
+  if (history) {
+    return JSON.parse(history);
+  }
+  const data = getUserData();
+  const currentWeight = data ? data.weight : 75;
+  // Initialize with 5 entries of current weight if no history
+  const defaultHistory = Array(5).fill(currentWeight);
+  localStorage.setItem('weightHistory', JSON.stringify(defaultHistory));
+  return defaultHistory;
+};
+
+/**
+ * Adds a new weight entry to the history array (max 7).
+ */
+export const addWeightToHistory = (weight) => {
+  let history = getWeightHistory();
+  history = [...history, weight].slice(-7);
+  localStorage.setItem('weightHistory', JSON.stringify(history));
+  return history;
+};
+
+/**
  * Updates a specific field in the user data object.
  */
 export const updateUserField = (field, value) => {
   const data = getUserData();
   const updatedData = { ...data, [field]: value };
   setUserData(updatedData);
+
+  if (field === 'weight') {
+    addWeightToHistory(value);
+  }
+
   return updatedData;
 };
 
