@@ -13,6 +13,7 @@ import Trainers from './pages/Trainers';
 import Contact from './pages/Contact';
 import FindUs from './pages/FindUs';
 import Footer from './components/Footer';
+import BackToTopButton from './components/BackToTopButton';
 import { getUserData, isUserLoggedIn } from './utils/userStorage';
 
 function PageTitleManager() {
@@ -114,6 +115,7 @@ function App() {
           </Routes>
         </div>
 
+        <BackToTopButton />
         <Footer />
       </div>
     </Router>
