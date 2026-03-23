@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import Plans from './pages/Plans';
 import Trainers from './pages/Trainers';
 import Contact from './pages/Contact';
+import FindUs from './pages/FindUs';
 import Footer from './components/Footer';
 import { getUserData, isUserLoggedIn } from './utils/userStorage';
 
@@ -64,6 +65,7 @@ function App() {
             <Route path="/plans" element={<Plans />} />
             <Route path="/trainers" element={<Trainers />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/find-us" element={<FindUs />} />
             
             <Route 
               path="/profile" 
