@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { isUserLoggedIn } from '../utils/userStorage';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,12 @@ const Signup = () => {
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isUserLoggedIn()) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });

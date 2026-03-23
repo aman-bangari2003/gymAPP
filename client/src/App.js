@@ -7,12 +7,12 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import Dashboard from './pages/Dashboard';
-import { getUserData } from './utils/userStorage';
+import { getUserData, isUserLoggedIn } from './utils/userStorage';
 
 function App() {
   useEffect(() => {
     // Top-level cleanup for auth consistency
-    if (localStorage.getItem('isLoggedIn') !== 'true') {
+    if (!isUserLoggedIn()) {
       localStorage.removeItem('user');
       localStorage.removeItem('userData');
       localStorage.removeItem('weightHistory');
@@ -47,7 +47,7 @@ function App() {
       <div className="App">
         <Navbar />
         <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<Navigate to={isUserLoggedIn() ? "/dashboard" : "/login"} replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           
@@ -79,7 +79,7 @@ function App() {
           />
           
           {/* Catch all route */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to={isUserLoggedIn() ? "/dashboard" : "/login"} replace />} />
         </Routes>
       </div>
     </Router>

@@ -5,10 +5,17 @@
 const STORAGE_KEY = 'user';
 
 /**
+ * Checks if the user is currently logged in.
+ */
+export const isUserLoggedIn = () => {
+  return localStorage.getItem('isLoggedIn') === 'true';
+};
+
+/**
  * Initializes or retrieves user data from localStorage.
  */
 export const getUserData = () => {
-  if (localStorage.getItem('isLoggedIn') !== 'true') {
+  if (!isUserLoggedIn()) {
     return null;
   }
 
@@ -16,7 +23,7 @@ export const getUserData = () => {
   if (!data) {
     const defaultData = {
       name: "User",
-      weight: 75,
+      weight: null,
       height: null,
       calories: 2000,
       streak: 0,
@@ -59,8 +66,10 @@ export const getWeightHistory = () => {
     return JSON.parse(history);
   }
   const data = getUserData();
-  const currentWeight = data ? data.weight : 75;
-  // Initialize with 5 entries of current weight if no history
+  const currentWeight = data ? data.weight : null;
+  if (!currentWeight) return [];
+  
+  // Initialize with 5 entries of current weight if no history but weight exists
   const defaultHistory = Array(5).fill(currentWeight);
   localStorage.setItem('weightHistory', JSON.stringify(defaultHistory));
   return defaultHistory;

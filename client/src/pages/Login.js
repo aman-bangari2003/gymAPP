@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { isUserLoggedIn } from '../utils/userStorage';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isUserLoggedIn()) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   const handleLogin = (e) => {
     e.preventDefault();

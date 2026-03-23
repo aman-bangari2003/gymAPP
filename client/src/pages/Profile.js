@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, User, ArrowLeft, ShieldCheck, ShieldAlert, Crown, Flame, Dumbbell, CalendarDays, Edit3, Target, Award as AwardIcon } from 'lucide-react';
-import { getUserData, updateUserField } from '../utils/userStorage';
+import { getUserData, updateUserField, isUserLoggedIn } from '../utils/userStorage';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ const Profile = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem('isLoggedIn') !== 'true') {
+    if (!isUserLoggedIn()) {
       navigate('/login');
       return;
     }
@@ -149,13 +149,14 @@ const Profile = () => {
               onBlur={(e) => {
                 const val = e.target.value;
                 if (!val) {
-                  handleFieldChange('weight', 75); // fallback
+                  handleFieldChange('weight', null);
                 } else {
                   let num = parseFloat(val);
-                  if (isNaN(num)) num = 75;
-                  if (num < 20) num = 20;
-                  if (num > 200) num = 200;
-                  handleFieldChange('weight', num);
+                  if (isNaN(num) || num <= 0 || num < 20 || num > 300) {
+                    handleFieldChange('weight', null);
+                  } else {
+                    handleFieldChange('weight', num);
+                  }
                 }
               }}
             />

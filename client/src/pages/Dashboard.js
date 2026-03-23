@@ -147,8 +147,19 @@ const Dashboard = () => {
                 <Activity size={20} color="#3b82f6" />
                 <span>Current Weight</span>
               </div>
-              <div style={styles.statValue}>{user.weight || 75} <span>kg</span></div>
-              <div style={{...styles.statChange, color: '#4ade80'}}>Goal: {user.goal === 'fat_loss' ? 'Fat Loss' : 'Muscle Gain'}</div>
+              {user.weight ? (
+                <>
+                  <div style={styles.statValue}>{user.weight} <span>kg</span></div>
+                  <div style={{...styles.statChange, color: '#4ade80'}}>Goal: {user.goal === 'fat_loss' ? 'Fat Loss' : 'Muscle Gain'}</div>
+                </>
+              ) : (
+                <>
+                  <div style={styles.statValue}><span style={{fontSize: '1.2rem', color: 'var(--text-muted)'}}>No weight data</span></div>
+                  <div style={{...styles.statChange, color: '#3b82f6', cursor: 'pointer', textDecoration: 'underline'}} onClick={() => navigate('/profile')}>
+                    Add your weight
+                  </div>
+                </>
+              )}
             </div>
             <div className="dash-card stat-card" style={styles.statCard}>
               <div style={styles.statHeader}>

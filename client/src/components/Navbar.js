@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Dumbbell, User } from 'lucide-react';
+import { isUserLoggedIn } from '../utils/userStorage';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeSection, setActiveSection] = useState('hero');
-  const isAuthenticated = localStorage.getItem('isLoggedIn') === 'true';
+  const isAuthenticated = isUserLoggedIn();
 
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
 
