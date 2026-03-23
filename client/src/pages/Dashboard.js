@@ -128,8 +128,8 @@ const Dashboard = () => {
     const h = parseFloat(userData.height);
     const w = parseFloat(userData.weight);
     
-    if (isNaN(h) || isNaN(w) || h <= 0) {
-      return { value: null, status: 'Enter data to calculate', color: 'var(--text-muted)' };
+    if (!h || !w || h <= 0) {
+      return { value: '--', status: 'Enter data to calculate', color: 'var(--text-muted)' };
     }
     const heightInMeters = h / 100;
     const bmi = (w / (heightInMeters * heightInMeters)).toFixed(1);
@@ -150,7 +150,40 @@ const Dashboard = () => {
     return { value: bmi, status, color };
   };
 
+  const getCalorieData = () => {
+    const w = parseFloat(userData.weight);
+    if (!w || w <= 0) {
+      return { 
+        value: '--', 
+        status: 'Data required', 
+        subtext: 'Enter weight to calculate target', 
+        label: 'Daily Target',
+        color: 'var(--text-muted)'
+      };
+    }
+    
+    const maintenance = w * 30;
+    if (userData.goal === 'muscle') {
+      return { 
+        value: Math.round(maintenance + 300), 
+        status: '+300 kcal surplus', 
+        subtext: 'Surplus for muscle growth 💪', 
+        label: 'Eat ~',
+        color: '#4ade80' // Green accent
+      };
+    } else {
+      return { 
+        value: Math.round(maintenance - 400), 
+        status: '-400 kcal deficit', 
+        subtext: 'Calorie deficit for fat loss 🔥', 
+        label: 'Target ~',
+        color: '#f97316' // Orange accent
+      };
+    }
+  };
+
   const bmiData = getBmiData();
+  const calorieData = getCalorieData();
 
   return (
     <div className="dashboard-page" style={styles.pageWrapper}>
@@ -243,27 +276,37 @@ const Dashboard = () => {
                 <Activity size={20} color="#3b82f6" />
                 <span>Current Weight</span>
               </div>
-              {userData.weight ? (
-                <>
-                  <div style={styles.statValue}>{userData.weight} <span>kg</span></div>
-                  <div style={{...styles.statChange, color: '#4ade80'}}>Goal: {userData.goal === 'fat_loss' ? 'Fat Loss' : 'Muscle Gain'}</div>
-                </>
-              ) : (
-                <>
-                  <div style={styles.statValue}><span style={{fontSize: '1.2rem', color: 'var(--text-muted)'}}>No weight data</span></div>
-                  <div style={{...styles.statChange, color: '#3b82f6', cursor: 'pointer', textDecoration: 'underline'}} onClick={() => document.getElementById('weight-input')?.focus()}>
-                    Add your weight
-                  </div>
-                </>
-              )}
+              <div style={styles.statValue}>
+                {userData.weight && parseFloat(userData.weight) > 0 ? (
+                  <>{userData.weight} <span>kg</span></>
+                ) : (
+                  <><span style={{color: 'var(--text-muted)'}}>--</span> <span>kg</span></>
+                )}
+              </div>
+              <div style={{...styles.statChange, color: userData.weight && parseFloat(userData.weight) > 0 ? '#4ade80' : 'var(--text-muted)'}}>
+                {userData.weight && parseFloat(userData.weight) > 0 
+                  ? `Goal: ${userData.goal === 'fat_loss' ? 'Fat Loss' : 'Muscle Gain'}`
+                  : 'Enter weight to track goal'}
+              </div>
             </div>
             <div className="dash-card stat-card" style={styles.statCard}>
               <div style={styles.statHeader}>
-                <Flame size={20} color="#f97316" />
-                <span>Calories Burned</span>
+                <Flame size={20} color={calorieData.color === 'var(--text-muted)' ? '#f97316' : calorieData.color} />
+                <span>Daily Target</span>
               </div>
-              <div style={styles.statValue}>{userData.calories || 2450} <span>kcal</span></div>
-              <div style={{...styles.statChange, color: '#4ade80'}}>Level: {userData.experience || 'Beginner'}</div>
+              <div style={styles.statValue}>
+                {calorieData.value === '--' ? (
+                  <><span style={{color: 'var(--text-muted)'}}>--</span> <span>kcal</span></>
+                ) : (
+                  <>{calorieData.label}{calorieData.value} <span style={{fontSize: '1rem', color: 'var(--text-muted)', fontWeight: '600'}}>kcal</span></>
+                )}
+              </div>
+              <div style={{...styles.statChange, color: calorieData.color}}>
+                {calorieData.status}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', fontWeight: '500' }}>
+                {calorieData.subtext}
+              </div>
             </div>
             <div className="dash-card stat-card" style={styles.statCard}>
               <div style={styles.statHeader}>
@@ -278,10 +321,18 @@ const Dashboard = () => {
             <div className="dash-card stat-card" style={styles.statCard}>
               <div style={styles.statHeader}>
                 <Activity size={20} color="#8b5cf6" />
-                <span>BMI</span>
+                <span>BMI Score</span>
               </div>
-              <div style={styles.statValue}>{bmiData.value || '--'}</div>
-              <div style={{...styles.statChange, color: bmiData.color}}>Status: {bmiData.status}</div>
+              <div style={styles.statValue}>
+                {bmiData.value === '--' ? (
+                  <span style={{color: 'var(--text-muted)'}}>--</span>
+                ) : (
+                  bmiData.value
+                )}
+              </div>
+              <div style={{...styles.statChange, color: bmiData.color}}>
+                {bmiData.status}
+              </div>
             </div>
             {/* INTEGRATED MEMBERSHIP CARD */}
             <div className="dash-card stat-card" style={{...styles.statCard, cursor: 'pointer'}} onClick={() => navigate('/profile')}>
