@@ -1,26 +1,24 @@
 import React from 'react';
 import { Check } from 'lucide-react';
 
-const PlanCard = ({ title, price, hikedPrice, features, isPopular, onSelect, isSelected, isAnyPlanSelected }) => {
-  const isDimmed = isAnyPlanSelected && !isSelected;
+const PlanCard = ({ title, features, isPopular, onSelect, isSelected, isPending, isAnyPlanSelected, membershipStatus, cardTier, currentPlanTier }) => {
+  const isHighlighted = isSelected || isPending;
+  const isDimmed = isAnyPlanSelected && !isHighlighted;
+
+  const getButtonLabel = () => {
+    if (membershipStatus === 'Expired') return "Renew Plan";
+    if (isSelected) return "Current Plan ✔";
+    if (membershipStatus === 'Active') {
+      if (cardTier > currentPlanTier) return "Upgrade Plan";
+      if (cardTier < currentPlanTier) return "Downgrade Plan";
+    }
+    return "View Plans";
+  };
 
   return (
-    <div className={`plan-card ${isSelected ? 'selected' : ''} ${isDimmed ? 'dimmed' : ''}`} style={{ ...styles.card, ...(isSelected ? styles.selectedCard : {}) }}>
+    <div className={`plan-card ${isHighlighted ? 'selected' : ''} ${isDimmed ? 'dimmed' : ''}`} style={{ ...styles.card, ...(isHighlighted ? styles.selectedCard : {}) }}>
       {isPopular && <div className={`popular-badge ${isDimmed ? 'dimmed-badge' : ''}`} style={styles.popularBadge}>Most Popular</div>}
       <h3 style={styles.title}>{title}</h3>
-      <div style={styles.priceSection}>
-        {hikedPrice && (
-          <div style={styles.hikedPriceContainer}>
-            <span style={styles.hikedCurrency}>₹</span>
-            <span style={styles.hikedPrice}>{hikedPrice}</span>
-          </div>
-        )}
-        <div style={styles.priceContainer}>
-          <span style={styles.currency}>₹</span>
-          <span style={styles.price}>{price}</span>
-          <span style={styles.period}>/mo</span>
-        </div>
-      </div>
 
       <ul style={styles.featuresList}>
         {features.map((feature, index) => (
@@ -37,7 +35,7 @@ const PlanCard = ({ title, price, hikedPrice, features, isPopular, onSelect, isS
         style={styles.button}
         disabled={isSelected}
       >
-        {isSelected ? "Selected \u2713" : "Select Plan"}
+        {getButtonLabel()}
       </button>
     </div>
   );
@@ -80,50 +78,8 @@ const styles = {
   title: {
     fontSize: '1.5rem',
     color: 'white',
-    marginBottom: '1rem',
-    textAlign: 'center',
-  },
-  priceSection: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
     marginBottom: '2rem',
-  },
-  hikedPriceContainer: {
-    display: 'flex',
-    alignItems: 'baseline',
-    color: '#9ca3af', /* text-gray-400 */
-    textDecoration: 'line-through',
-    marginBottom: '0.25rem',
-  },
-  hikedCurrency: {
-    fontSize: '0.9rem',
-    fontWeight: '500',
-  },
-  hikedPrice: {
-    fontSize: '1.1rem',
-    fontWeight: '600',
-  },
-  priceContainer: {
-    display: 'flex',
-    alignItems: 'baseline',
-    justifyContent: 'center',
-  },
-  currency: {
-    fontSize: '1.5rem',
-    color: 'var(--text-muted)',
-    fontWeight: '600',
-  },
-  price: {
-    fontSize: '3.5rem',
-    fontWeight: '800',
-    color: 'white',
-    lineHeight: '1',
-  },
-  period: {
-    fontSize: '1rem',
-    color: 'var(--text-muted)',
-    marginLeft: '4px',
+    textAlign: 'center',
   },
   featuresList: {
     listStyle: 'none',
@@ -149,11 +105,11 @@ const styles = {
 const styleSheet = document.createElement("style");
 styleSheet.innerText = `
   .plan-card.dimmed { opacity: 0.85; filter: grayscale(20%); }
-  .plan-card:not(.selected):hover { transform: translateY(-8px) scale(1.03); box-shadow: 0 15px 40px rgba(0,0,0,0.5); border-color: rgba(249, 115, 22, 0.5); filter: grayscale(0%); opacity: 1; }
+  .plan-card:not(.selected):hover { transform: translateY(-12px) scale(1.03); box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 30px rgba(249, 115, 22, 0.1); border-color: rgba(249, 115, 22, 0.6); filter: grayscale(0%); opacity: 1; }
   .plan-card.selected:hover { transform: scale(1.05) translateY(-5px); box-shadow: 0 15px 50px rgba(249, 115, 22, 0.3); border-color: var(--primary-color); }
   .dimmed-badge { opacity: 0.5; box-shadow: none !important; }
-  .interaction-btn:hover { transform: scale(1.05); filter: brightness(1.2); }
-  .selected-btn { cursor: not-allowed !important; background-color: var(--primary-hover) !important; color: white !important; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4) !important; }
+  .interaction-btn:hover { transform: scale(1.05); filter: brightness(1.2); box-shadow: 0 0 15px rgba(249, 115, 22, 0.3); }
+  .selected-btn { cursor: not-allowed !important; background-color: var(--primary-hover) !important; color: white !important; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4) !important; opacity: 0.9; }
 `;
 document.head.appendChild(styleSheet);
 

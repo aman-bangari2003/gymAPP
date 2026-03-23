@@ -39,15 +39,31 @@ const Navbar = () => {
           <span style={styles.logoText}>IronClad</span>
         </Link>
 
-        {!isAuthPage && isAuthenticated && location.pathname === '/home' && (
+        {!isAuthPage && isAuthenticated && (
           <ul style={styles.navLinks}>
-            {['hero', 'membership', 'trainers', 'contact'].map(sec => (
+            <li>
+              <Link 
+                to="/home" 
+                className={`nav-link ${location.pathname === '/home' ? 'active' : ''}`}
+              >
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link 
+                to="/dashboard" 
+                className={`nav-link ${location.pathname === '/dashboard' ? 'active' : ''}`}
+              >
+                Dashboard
+              </Link>
+            </li>
+            {location.pathname === '/home' && ['membership', 'trainers', 'contact'].map(sec => (
               <li key={sec}>
                 <a 
                   href={`#${sec}`} 
                   className={`nav-link ${activeSection === sec ? 'active' : ''}`}
                 >
-                  {(sec.charAt(0).toUpperCase() + sec.slice(1)).replace('Hero', 'Home').replace('Membership', 'Plans')}
+                  {(sec.charAt(0).toUpperCase() + sec.slice(1)).replace('Membership', 'Plans')}
                 </a>
               </li>
             ))}

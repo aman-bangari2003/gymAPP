@@ -3,26 +3,35 @@ import PlanCard from '../components/PlanCard';
 import TrainerCard from '../components/TrainerCard';
 import Footer from '../components/Footer';
 import Features from '../components/Features';
+import DurationModal from '../components/DurationModal';
+import PaymentModal from '../components/PaymentModal';
 import { Bell } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { getUserData, setUserData } from '../utils/userStorage';
 
 const Home = () => {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const [tempViewingPlan, setTempViewingPlan] = useState(null);
+  const [membershipStatus, setMembershipStatus] = useState('Inactive');
   const [toast, setToast] = useState({ show: false, message: '' });
+  const [activeModal, setActiveModal] = useState(null);
+  const [paymentData, setPaymentData] = useState(null);
+  const navigate = useNavigate();
 
-  // Intersection Observer for scroll animations
   const observerRef = useRef(null);
 
   useEffect(() => {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      const user = JSON.parse(userStr);
+    const user = getUserData();
+    if (user) {
       if (user.plan) {
         setSelectedPlan(user.plan);
       }
+      if (user.membershipStatus) {
+        setMembershipStatus(user.membershipStatus);
+      }
     }
 
-    // Set up observer for reveal animations
     observerRef.current = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -52,34 +61,60 @@ const Home = () => {
     setFormData({ name: '', email: '', message: '' });
   };
 
-  const handleSelectPlan = (planTitle) => {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      const user = JSON.parse(userStr);
-      user.membershipStatus = 'Active';
-      user.plan = planTitle;
-      localStorage.setItem('user', JSON.stringify(user));
+  const handleOpenDurationModal = (planTitle) => {
+    const user = getUserData();
+    if (!user) {
+      alert('Please log in to browse plans.');
+      return;
+    }
+    setTempViewingPlan(planTitle);
+    setActiveModal('duration');
+  };
 
-      const userDataStr = localStorage.getItem('userData');
-      if (userDataStr) {
-        const userData = JSON.parse(userDataStr);
-        if (userData.email === user.email) {
-          userData.membershipStatus = 'Active';
-          userData.plan = planTitle;
-          localStorage.setItem('userData', JSON.stringify(userData));
-        }
-      }
+  const handleProceedToPayment = (planTitle, durationObj) => {
+    setPaymentData({ 
+      plan: planTitle, 
+      label: durationObj.label, 
+      price: durationObj.price, 
+      months: durationObj.months 
+    });
+    setActiveModal('payment');
+  };
+
+  const handlePaymentSuccess = (planTitle, durationLabel) => {
+    const user = getUserData();
+    if (user) {
+      const now = new Date();
+      const expiry = new Date();
+      expiry.setDate(now.getDate() + (paymentData.months * 30.44));
+
+      const updatedUser = {
+        ...user,
+        membershipStatus: 'Active',
+        plan: planTitle,
+        duration: durationLabel,
+        startDate: now.toISOString(),
+        expiryDate: expiry.toISOString()
+      };
+
+      setUserData(updatedUser);
+
+      setMembershipStatus('Active');
       setSelectedPlan(planTitle);
-      showToast(`${planTitle} Plan Activated 🚀`);
-    } else {
-      alert('Please log in to select a plan.');
+      setTempViewingPlan(null);
+      setActiveModal(null);
+      
+      showToast('Payment Successful 🎉');
+      setTimeout(() => {
+        navigate('/profile');
+      }, 1500);
     }
   };
 
   const plans = [
-    { title: 'Basic', price: '1999', hikedPrice: '2499', features: ['Access to gym equipment', 'Locker room access', '1 group class/week', 'Free Wi-Fi'], isPopular: false },
-    { title: 'Pro', price: '2999', hikedPrice: '3999', features: ['24/7 access', 'All group classes', 'Monthy fitness assessment', 'Nutrition guide', 'Guest pass (1/month)'], isPopular: true },
-    { title: 'Elite', price: '3999', hikedPrice: '4999', features: ['Everything in Pro', '4 Personal training sessions', 'Recovery room access', 'Unlimited guest passes', 'Premium locker'], isPopular: false }
+    { title: 'Basic', features: ['Access to gym equipment', 'Locker room access', '1 group class/week', 'Free Wi-Fi'], isPopular: false },
+    { title: 'Pro', features: ['24/7 access', 'All group classes', 'Monthy fitness assessment', 'Nutrition guide', 'Guest pass (1/month)'], isPopular: true },
+    { title: 'Elite', features: ['Everything in Pro', '4 Personal training sessions', 'Recovery room access', 'Unlimited guest passes', 'Premium locker'], isPopular: false }
   ];
 
   const trainers = [
@@ -125,15 +160,22 @@ const Home = () => {
           </div>
 
           <div style={styles.grid3}>
-            {plans.map((plan, idx) => (
-              <PlanCard
-                key={idx}
-                {...plan}
-                onSelect={handleSelectPlan}
-                isSelected={selectedPlan === plan.title}
-                isAnyPlanSelected={!!selectedPlan}
-              />
-            ))}
+            {plans.map((plan, idx) => {
+              const tierMap = { 'Basic': 0, 'Pro': 1, 'Elite': 2 };
+              return (
+                <PlanCard
+                  key={idx}
+                  {...plan}
+                  onSelect={handleOpenDurationModal}
+                  isSelected={selectedPlan === plan.title}
+                  isPending={tempViewingPlan === plan.title}
+                  isAnyPlanSelected={!!selectedPlan || !!tempViewingPlan}
+                  membershipStatus={membershipStatus}
+                  cardTier={tierMap[plan.title]}
+                  currentPlanTier={selectedPlan ? tierMap[selectedPlan] : -1}
+                />
+              );
+            })}
           </div>
         </div>
       </section>
@@ -181,6 +223,24 @@ const Home = () => {
       </section>
 
       <Footer />
+
+      {activeModal === 'duration' && (
+        <DurationModal 
+          plan={tempViewingPlan} 
+          onClose={() => { setActiveModal(null); setTempViewingPlan(null); }} 
+          onProceedToPayment={handleProceedToPayment} 
+        />
+      )}
+
+      {activeModal === 'payment' && paymentData && (
+        <PaymentModal 
+          plan={paymentData.plan}
+          duration={paymentData.label}
+          price={paymentData.price}
+          onClose={() => setActiveModal(null)}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
     </div>
   );
 };
@@ -275,6 +335,41 @@ styleSheet.innerText = `
   .reveal.visible { opacity: 1; transform: translateY(0); }
   .delay-1 { transition-delay: 0.1s; }
   .delay-2 { transition-delay: 0.2s; }
+  
+  /* Modal Overlays */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+  }
+  .modal-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 2.5rem;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 800px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .payment-modal { max-width: 500px; }
+  
+  @keyframes modalPop {
+    0% { opacity: 0; transform: scale(0.95) translateY(20px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  /* Spin Animation */
+  .spin { animation: spin 1s linear infinite; }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
 `;
 document.head.appendChild(styleSheet);
 
