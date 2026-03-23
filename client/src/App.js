@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import ScrollToTop from './components/ScrollToTop';
@@ -14,6 +14,29 @@ import Contact from './pages/Contact';
 import FindUs from './pages/FindUs';
 import Footer from './components/Footer';
 import { getUserData, isUserLoggedIn } from './utils/userStorage';
+
+function PageTitleManager() {
+  const location = useLocation();
+  
+  useEffect(() => {
+    const titles = {
+      '/': 'Home',
+      '/plans': 'Plans',
+      '/trainers': 'Trainers',
+      '/contact': 'Contact',
+      '/find-us': 'Find Us',
+      '/dashboard': 'Dashboard',
+      '/profile': 'Profile',
+      '/login': 'Login',
+      '/signup': 'Signup'
+    };
+    
+    const pageTitle = titles[location.pathname] || 'Elite Fitness';
+    document.title = `IronClad | ${pageTitle}`;
+  }, [location]);
+
+  return null;
+}
 
 function App() {
   useEffect(() => {
@@ -52,6 +75,7 @@ function App() {
 
   return (
     <Router>
+      <PageTitleManager />
       <ScrollToTop />
       <div className="App">
         <Navbar />
