@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import PlanCard from '../components/PlanCard';
 import DurationModal from '../components/DurationModal';
 import PaymentModal from '../components/PaymentModal';
@@ -90,6 +91,11 @@ const Plans = () => {
     { title: 'Elite', features: ['Everything in Pro', '4 Personal training sessions', 'Recovery room access', 'Unlimited guest passes', 'Premium locker'], isPopular: false }
   ];
 
+  const fadeUpVariant = {
+    hidden: { opacity: 0, y: 50 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
     <div className="plans-page" style={{ paddingTop: '80px' }}>
       {/* TOAST NOTIFICATION */}
@@ -102,26 +108,41 @@ const Plans = () => {
 
       <section style={styles.section}>
         <div className="container" style={{ padding: '0 32px' }}>
-          <div style={styles.sectionHeader}>
+          <motion.div 
+            style={styles.sectionHeader}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={fadeUpVariant}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
             <h2 style={styles.sectionTitle}>Choose Your <span>Plan</span></h2>
             <p style={styles.sectionSubtitle}>Flexible memberships to fit your fitness goals.</p>
-          </div>
+          </motion.div>
 
           <div style={styles.grid3}>
             {plans.map((plan, idx) => {
               const tierMap = { 'Basic': 0, 'Pro': 1, 'Elite': 2 };
               return (
-                <PlanCard
+                <motion.div
                   key={idx}
-                  {...plan}
-                  onSelect={handleOpenDurationModal}
-                  isSelected={selectedPlan === plan.title}
-                  isPending={tempViewingPlan === plan.title}
-                  isAnyPlanSelected={!!selectedPlan || !!tempViewingPlan}
-                  membershipStatus={membershipStatus}
-                  cardTier={tierMap[plan.title]}
-                  currentPlanTier={selectedPlan ? tierMap[selectedPlan] : -1}
-                />
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.2 }}
+                  variants={fadeUpVariant}
+                  transition={{ duration: 0.5, delay: idx * 0.1, ease: "easeOut" }}
+                >
+                  <PlanCard
+                    {...plan}
+                    onSelect={handleOpenDurationModal}
+                    isSelected={selectedPlan === plan.title}
+                    isPending={tempViewingPlan === plan.title}
+                    isAnyPlanSelected={!!selectedPlan || !!tempViewingPlan}
+                    membershipStatus={membershipStatus}
+                    cardTier={tierMap[plan.title]}
+                    currentPlanTier={selectedPlan ? tierMap[selectedPlan] : -1}
+                  />
+                </motion.div>
               );
             })}
           </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Users, Dumbbell, Clock, HeartPulse } from 'lucide-react';
+import { motion } from 'framer-motion';
 import './Features.css';
 
 const Features = () => {
@@ -38,14 +39,36 @@ const Features = () => {
         }
     ];
 
+    const fadeUpVariant = {
+        hidden: { opacity: 0, y: 50 },
+        visible: { opacity: 1, y: 0 }
+    };
+
     return (
-        <section className="features-section reveal fade-in-up">
+        <section className="features-section">
             <div className="container" style={{ padding: '0 32px' }}>
-                <h2 className="features-title">WHY CHOOSE <span>IRONCLAD MEMBERSHIP</span></h2>
+                <motion.h2 
+                    className="features-title"
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.2 }}
+                    variants={fadeUpVariant}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                >
+                    WHY CHOOSE <span>IRONCLAD MEMBERSHIP</span>
+                </motion.h2>
 
                 <div className="features-grid">
                     {featuresData.map((feature, index) => (
-                        <div className="feature-card" key={index}>
+                        <motion.div 
+                            className="feature-card" 
+                            key={index}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, amount: 0.2 }}
+                            variants={fadeUpVariant}
+                            transition={{ duration: 0.5, delay: index * 0.1, ease: "easeOut" }}
+                        >
                             <div
                                 className="feature-card-bg"
                                 style={{ backgroundImage: `url(${feature.bgImage})` }}
@@ -64,7 +87,7 @@ const Features = () => {
                                 <h3 className="feature-card-title">{feature.title}</h3>
                                 <p className="feature-card-desc">{feature.description}</p>
                             </div>
-                        </div>
+                        </motion.div>
                     ))}
                 </div>
             </div>
