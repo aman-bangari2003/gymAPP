@@ -13,6 +13,8 @@ const Home = () => {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [activeShowcase, setActiveShowcase] = useState(0);
   const [activeEquipment, setActiveEquipment] = useState(0);
+  const [activeSuccessStory, setActiveSuccessStory] = useState(0);
+  const [activeTrainer, setActiveTrainer] = useState(0);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -30,6 +32,12 @@ const Home = () => {
 
   const handlePrevShowcase = () => setActiveShowcase((prev) => (prev === 0 ? showcaseImages.length - 1 : prev - 1));
   const handleNextShowcase = () => setActiveShowcase((prev) => (prev === showcaseImages.length - 1 ? 0 : prev + 1));
+
+  const handlePrevSuccess = () => setActiveSuccessStory((prev) => (prev === 0 ? successStories.length - 1 : prev - 1));
+  const handleNextSuccess = () => setActiveSuccessStory((prev) => (prev === successStories.length - 1 ? 0 : prev + 1));
+
+  const handlePrevTrainer = () => setActiveTrainer((prev) => (prev === 0 ? trainers.length - 1 : prev - 1));
+  const handleNextTrainer = () => setActiveTrainer((prev) => (prev === trainers.length - 1 ? 0 : prev + 1));
 
   const showcaseImages = [
     { url: '/gym_interior_strength_1774284019119.png', label: 'Strength Zone' },
@@ -51,8 +59,8 @@ const Home = () => {
   ];
 
   const successStories = [
-    { title: 'Fat Loss Transformation', subtitle: 'Lost 12kg in 4 months through consistent training', image: '/transformation_fatloss.png' },
-    { title: 'Muscle Gain Transformation', subtitle: 'Built lean muscle and improved strength in 16 weeks', image: '/transformation_muscle.png' }
+    { title: 'Fat Loss Transformation', subtitle: 'Consistent training and expert nutritional guidance.', image: '/transformation_fatloss.png', val: '−12kg', duration: 'in 4 months' },
+    { title: 'Muscle Gain Transformation', subtitle: 'Dedicated strength program and surplus fueling.', image: '/transformation_muscle.png', val: '+5kg muscle', duration: 'in 16 weeks' }
   ];
 
   const equipmentItems = [
@@ -229,16 +237,72 @@ const Home = () => {
             <h2 className="section-title">TRAIN WITH <span>THE BEST</span></h2>
             <p className="section-subtitle">Our elite coaching staff is dedicated to pushing you beyond your perceived limits.</p>
           </motion.div>
-          <div className="trainers-grid">
-            {trainers.map((trainer, i) => (
-              <motion.div 
-                key={i}
-                initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={fadeUpVariant} transition={{ duration: 0.5, delay: i * 0.1, ease: "easeOut" }}
-              >
-                <TrainerCard {...trainer} />
-              </motion.div>
-            ))}
-          </div>
+          {isMobile ? (
+            <div className="trainers-slider-container">
+              <div className="slider-wrapper">
+                <button 
+                  className="slider-btn prev vertical-center" 
+                  onClick={handlePrevTrainer} 
+                  disabled={activeTrainer === 0}
+                  aria-label="Previous trainer"
+                >
+                  <ChevronLeft size={24} color="var(--primary-color)" />
+                </button>
+
+                <div className="slider-viewport trainers-viewport">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeTrainer}
+                      initial={{ opacity: 0, x: 50 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -50 }}
+                      transition={{ duration: 0.3 }}
+                      className="mobile-slider-card"
+                      drag="x"
+                      dragConstraints={{ left: 0, right: 0 }}
+                      onDragEnd={(e, { offset }) => {
+                        if (offset.x < -50 && activeTrainer < trainers.length - 1) handleNextTrainer();
+                        else if (offset.x > 50 && activeTrainer > 0) handlePrevTrainer();
+                      }}
+                    >
+                      <TrainerCard {...trainers[activeTrainer]} />
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+
+                <button 
+                  className="slider-btn next vertical-center" 
+                  onClick={handleNextTrainer} 
+                  disabled={activeTrainer === trainers.length - 1}
+                  aria-label="Next trainer"
+                >
+                  <ChevronRight size={24} color="var(--primary-color)" />
+                </button>
+              </div>
+
+              <div className="slider-dots">
+                {trainers.map((_, idx) => (
+                  <button
+                    key={idx}
+                    className={`slider-dot ${idx === activeTrainer ? 'active' : ''}`}
+                    onClick={() => setActiveTrainer(idx)}
+                    aria-label={`Go to trainer ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="trainers-grid">
+              {trainers.map((trainer, i) => (
+                <motion.div 
+                  key={i}
+                  initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={fadeUpVariant} transition={{ duration: 0.5, delay: i * 0.1, ease: "easeOut" }}
+                >
+                  <TrainerCard {...trainer} />
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -252,23 +316,101 @@ const Home = () => {
             <h2 className="section-title">SUCCESS <span>STORIES</span></h2>
             <p className="section-subtitle">Real results achieved through absolute dedication and expert guidance.</p>
           </motion.div>
-          <div className="transformations-grid">
-            {successStories.map((story, i) => (
-              <motion.div 
-                key={i} 
-                className="transformation-card"
-                initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={fadeUpVariant} transition={{ duration: 0.5, delay: i * 0.15, ease: "easeOut" }}
-              >
-                <div className="transformation-image-single">
-                  <img src={story.image} alt={story.title} />
+          {isMobile ? (
+            <div className="transformations-slider-container">
+              <div className="slider-wrapper">
+                <button 
+                  className="slider-btn prev vertical-center" 
+                  onClick={handlePrevSuccess} 
+                  disabled={activeSuccessStory === 0}
+                  aria-label="Previous story"
+                >
+                  <ChevronLeft size={24} color="var(--primary-color)" />
+                </button>
+
+                <div className="slider-viewport transformations-viewport">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeSuccessStory}
+                      initial={{ opacity: 0, x: 50 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -50 }}
+                      transition={{ duration: 0.3 }}
+                      className="transformation-card mobile-slider-card"
+                      drag="x"
+                      dragConstraints={{ left: 0, right: 0 }}
+                      onDragEnd={(e, { offset }) => {
+                        if (offset.x < -50 && activeSuccessStory < successStories.length - 1) handleNextSuccess();
+                        else if (offset.x > 50 && activeSuccessStory > 0) handlePrevSuccess();
+                      }}
+                    >
+                      <div className="transformation-image-split">
+                        <div className="trans-img-half before" style={{ backgroundImage: `url(${successStories[activeSuccessStory].image})` }}>
+                          <span className="trans-badge before">BEFORE</span>
+                        </div>
+                        <div className="trans-img-half after" style={{ backgroundImage: `url(${successStories[activeSuccessStory].image})` }}>
+                          <span className="trans-badge after">AFTER</span>
+                        </div>
+                      </div>
+                      <div className="transformation-info">
+                        <h3 className="story-title">{successStories[activeSuccessStory].title}</h3>
+                        <div className="transformation-stats">
+                          <span>{successStories[activeSuccessStory].val}</span> {successStories[activeSuccessStory].duration}
+                        </div>
+                        <p className="story-subtitle">{successStories[activeSuccessStory].subtitle}</p>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
-                <div className="transformation-info">
-                  <h3>{story.title}</h3>
-                  <p>{story.subtitle}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+
+                <button 
+                  className="slider-btn next vertical-center" 
+                  onClick={handleNextSuccess} 
+                  disabled={activeSuccessStory === successStories.length - 1}
+                  aria-label="Next story"
+                >
+                  <ChevronRight size={24} color="var(--primary-color)" />
+                </button>
+              </div>
+
+              <div className="slider-dots">
+                {successStories.map((_, idx) => (
+                  <button
+                    key={idx}
+                    className={`slider-dot ${idx === activeSuccessStory ? 'active' : ''}`}
+                    onClick={() => setActiveSuccessStory(idx)}
+                    aria-label={`Go to story ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="transformations-grid">
+              {successStories.map((story, i) => (
+                <motion.div 
+                  key={i} 
+                  className="transformation-card"
+                  initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={fadeUpVariant} transition={{ duration: 0.5, delay: i * 0.15, ease: "easeOut" }}
+                >
+                  <div className="transformation-image-split">
+                    <div className="trans-img-half before" style={{ backgroundImage: `url(${story.image})` }}>
+                      <span className="trans-badge before">BEFORE</span>
+                    </div>
+                    <div className="trans-img-half after" style={{ backgroundImage: `url(${story.image})` }}>
+                      <span className="trans-badge after">AFTER</span>
+                    </div>
+                  </div>
+                  <div className="transformation-info">
+                    <h3 className="story-title">{story.title}</h3>
+                    <div className="transformation-stats">
+                      <span>{story.val}</span> {story.duration}
+                    </div>
+                    <p className="story-subtitle">{story.subtitle}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
