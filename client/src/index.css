@@ -120,7 +120,25 @@ button {
 .form-input:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px var(--glow-color);
+  box-shadow: 0 0 0 3px var(--glow-color);
+}
+
+.form-input.invalid {
+  border-color: #ef4444;
+}
+
+.form-input.invalid:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+.field-error {
+  color: #ef4444;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .auth-container {

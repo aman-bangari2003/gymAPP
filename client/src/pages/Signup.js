@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, ShieldCheck, XCircle, CheckCircle2 } from 'lucide-react';
 import { isUserLoggedIn } from '../utils/userStorage';
@@ -16,8 +16,17 @@ const Signup = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
 
+  const nameRef = useRef(null);
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
+  const confirmRef = useRef(null);
+
+  useEffect(() => {
+    if (nameRef.current) nameRef.current.focus();
+  }, []);
+
   const passwordRules = [
-    { label: 'Minimum 8 characters', regex: /.{8,}/ },
+    { label: 'Minimum 6 characters', regex: /.{6,}/ },
     { label: 'At least 1 uppercase letter', regex: /[A-Z]/ },
     { label: 'At least 1 lowercase letter', regex: /[a-z]/ },
     { label: 'At least 1 number', regex: /[0-9]/ },
@@ -46,7 +55,30 @@ const Signup = () => {
   }, [navigate]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
+    let { id, value } = e.target;
+    if (id === 'name') {
+      value = value.charAt(0).toUpperCase() + value.slice(1);
+    }
+    setFormData({ ...formData, [id]: value });
+  };
+
+  const handleKeyDown = (e, nextRef) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const currentField = e.target.id;
+      let isValid = false;
+
+      if (currentField === 'name') isValid = formData.name.trim().length > 0;
+      else if (currentField === 'email') isValid = isEmailValid;
+      else if (currentField === 'password') isValid = allRulesMet;
+      else if (currentField === 'confirmPassword') isValid = passwordsMatch && isFormValid;
+
+      if (isValid && nextRef) {
+        nextRef.current.focus();
+      } else if (isValid && !nextRef) {
+        handleSignup(e);
+      }
+    }
   };
 
   const handleSignup = (e) => {
@@ -84,24 +116,31 @@ const Signup = () => {
           <div className="form-group">
             <label className="form-label" htmlFor="name">Full Name</label>
             <input 
-              className="form-input" 
+              ref={nameRef}
+              className={`form-input ${formData.name && formData.name.trim().length === 0 ? 'invalid' : ''}`} 
               type="text" 
               id="name" 
               placeholder="Enter your name" 
               value={formData.name}
               onChange={handleChange}
+              onKeyDown={(e) => handleKeyDown(e, emailRef)}
               required 
             />
+            {formData.name.length > 0 && formData.name.trim().length === 0 && (
+              <p className="field-error"><XCircle size={14} /> Name cannot be empty</p>
+            )}
           </div>
           <div className="form-group">
             <label className="form-label" htmlFor="email">Email Address</label>
             <input 
-              className="form-input" 
+              ref={emailRef}
+              className={`form-input ${formData.email && !isEmailValid ? 'invalid' : ''}`} 
               type="email" 
               id="email" 
               placeholder="Enter your email" 
               value={formData.email}
               onChange={handleChange}
+              onKeyDown={(e) => handleKeyDown(e, passwordRef)}
               required 
             />
             {/* Real-time Email Validation */}
@@ -125,7 +164,8 @@ const Signup = () => {
             <label className="form-label" htmlFor="password">Password</label>
             <div style={{ position: 'relative' }}>
               <input 
-                className="form-input" 
+                ref={passwordRef}
+                className={`form-input ${formData.password && !allRulesMet ? 'invalid' : ''}`} 
                 type={showPassword ? "text" : "password"} 
                 id="password" 
                 placeholder="Create a password" 
@@ -133,6 +173,7 @@ const Signup = () => {
                 onChange={handleChange}
                 onFocus={() => setPasswordFocus(true)}
                 onBlur={() => setPasswordFocus(false)}
+                onKeyDown={(e) => handleKeyDown(e, confirmRef)}
                 style={{ paddingRight: '45px' }}
                 required 
               />
@@ -186,12 +227,14 @@ const Signup = () => {
             <label className="form-label" htmlFor="confirmPassword">Confirm Password</label>
             <div style={{ position: 'relative' }}>
               <input 
-                className="form-input" 
+                ref={confirmRef}
+                className={`form-input ${formData.confirmPassword && !passwordsMatch ? 'invalid' : ''}`} 
                 type={showConfirmPassword ? "text" : "password"} 
                 id="confirmPassword" 
                 placeholder="Confirm your password" 
                 value={formData.confirmPassword}
                 onChange={handleChange}
+                onKeyDown={(e) => handleKeyDown(e, null)}
                 style={{ paddingRight: '45px' }}
                 required 
               />

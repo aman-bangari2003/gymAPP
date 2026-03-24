@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, XCircle } from 'lucide-react';
 import { isUserLoggedIn } from '../utils/userStorage';
 
 const Login = () => {
@@ -10,11 +10,40 @@ const Login = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailValid = emailRegex.test(email);
+  const isPasswordValid = password.length >= 6;
+  const isFormValid = isEmailValid && isPasswordValid;
+
+  useEffect(() => {
+    if (emailRef.current) emailRef.current.focus();
+  }, []);
+
   useEffect(() => {
     if (isUserLoggedIn()) {
       navigate('/dashboard');
     }
   }, [navigate]);
+
+  const handleKeyDown = (e, nextRef) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const currentField = e.target.id;
+      let isValid = false;
+
+      if (currentField === 'email') isValid = isEmailValid;
+      else if (currentField === 'password') isValid = isPasswordValid;
+
+      if (isValid && nextRef) {
+        nextRef.current.focus();
+      } else if (isValid && !nextRef) {
+        handleLogin(e);
+      }
+    }
+  };
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -64,25 +93,32 @@ const Login = () => {
           <div className="form-group">
             <label className="form-label" htmlFor="email">Email Address</label>
             <input 
-              className="form-input" 
+              ref={emailRef}
+              className={`form-input ${email && !isEmailValid ? 'invalid' : ''}`} 
               type="email" 
               id="email" 
               placeholder="Enter your email" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, passwordRef)}
               required 
             />
+            {email && !isEmailValid && (
+              <p className="field-error"><XCircle size={14} /> Please enter a valid email address</p>
+            )}
           </div>
           <div className="form-group">
             <label className="form-label" htmlFor="password">Password</label>
             <div style={{ position: 'relative' }}>
               <input 
-                className="form-input" 
+                ref={passwordRef}
+                className={`form-input ${password && !isPasswordValid ? 'invalid' : ''}`} 
                 type={showPassword ? "text" : "password"} 
                 id="password" 
                 placeholder="Enter your password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => handleKeyDown(e, null)}
                 style={{ paddingRight: '45px' }}
                 required 
               />
@@ -109,7 +145,14 @@ const Login = () => {
           
           {error && <p className="error-message">{error}</p>}
           
-          <button type="submit" className="btn-primary auth-btn">Login</button>
+          <button 
+            type="submit" 
+            className="btn-primary auth-btn"
+            disabled={!isFormValid}
+            style={{ opacity: isFormValid ? 1 : 0.7 }}
+          >
+            Login
+          </button>
         </form>
         
         <div className="auth-footer">
