@@ -15,10 +15,12 @@ import FindUs from './pages/FindUs';
 import Footer from './components/Footer';
 import BackToTopButton from './components/BackToTopButton';
 import { getUserData, isUserLoggedIn } from './utils/userStorage';
+import { auth } from './db/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 function PageTitleManager() {
   const location = useLocation();
-  
+
   useEffect(() => {
     const titles = {
       '/': 'Home',
@@ -31,7 +33,7 @@ function PageTitleManager() {
       '/login': 'Login',
       '/signup': 'Signup'
     };
-    
+
     const pageTitle = titles[location.pathname] || 'Elite Fitness';
     document.title = `IronClad | ${pageTitle}`;
   }, [location]);
@@ -52,7 +54,7 @@ function App() {
 
     // Global user initialization and daily workout reset
     const user = getUserData();
-    
+
     // Check for plan expiry
     if (user && user.expiryDate && new Date() > new Date(user.expiryDate)) {
       if (user.membershipStatus !== 'Expired') {
@@ -62,7 +64,7 @@ function App() {
           userData.membershipStatus = 'Expired';
           localStorage.setItem('user', JSON.stringify(userData));
         }
-        
+
         // Sync legacy key
         const legacyDataStr = localStorage.getItem('userData');
         if (legacyDataStr) {
@@ -73,6 +75,27 @@ function App() {
       }
     }
   }, []);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("User logged in:", user.email);
+
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("user", JSON.stringify({
+          name: user.displayName || "User",
+          email: user.email
+        }));
+
+      } else {
+        console.log("User logged out");
+
+        localStorage.removeItem("isLoggedIn");
+        localStorage.removeItem("user");
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return (
     <Router>
@@ -80,36 +103,36 @@ function App() {
       <ScrollToTop />
       <div className="App">
         <Navbar />
-        
+
         <div className="main-content">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            
+
             <Route path="/plans" element={<Plans />} />
             <Route path="/trainers" element={<Trainers />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/find-us" element={<FindUs />} />
-            
-            <Route 
-              path="/profile" 
+
+            <Route
+              path="/profile"
               element={
                 <ProtectedRoute>
                   <Profile />
                 </ProtectedRoute>
-              } 
+              }
             />
-            
-            <Route 
-              path="/dashboard" 
+
+            <Route
+              path="/dashboard"
               element={
                 <ProtectedRoute>
                   <Dashboard />
                 </ProtectedRoute>
-              } 
+              }
             />
-            
+
             {/* Catch all route */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

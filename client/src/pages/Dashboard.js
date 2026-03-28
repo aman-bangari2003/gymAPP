@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Flame, 
-  Calendar, 
-  Clock, 
-  Activity, 
+import {
+  Flame,
+  Calendar,
+  Clock,
+  Activity,
   Award,
   TrendingUp,
   ShieldCheck,
@@ -83,7 +83,7 @@ const Dashboard = () => {
       }
 
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      
+
       let newColor = '#4ade80';
       if (diffDays < 5) newColor = '#f59e0b';
 
@@ -100,26 +100,28 @@ const Dashboard = () => {
 
   const handleSave = () => {
     setSaveStatus('Saving...');
-    
+
     // Parse numeric inputs for storage
     const weightNum = userData.weight === '' ? null : parseFloat(userData.weight);
     const heightNum = userData.height === '' ? null : parseFloat(userData.height);
-    
+
     const finalData = {
       ...userData,
       weight: weightNum,
-      height: heightNum
+      height: heightNum,
+      goal: userData.goal,
+      experience: userData.experience
     };
 
     // Persist to localStorage
     updateUserField('weight', weightNum);
     updateUserField('height', heightNum);
-    updateUserField('goal', userData.goal);
-    updateUserField('experience', userData.experience);
-    
+    updateUserField('goal', finalData.goal);
+    updateUserField('experience', finalData.experience);
+
     setSaveStatus('Saved ✔');
     setTimeout(() => setSaveStatus(''), 3000);
-    
+
     // Trigger a sync for other components
     window.dispatchEvent(new Event('storage'));
   };
@@ -127,13 +129,13 @@ const Dashboard = () => {
   const getBmiData = () => {
     const h = parseFloat(userData.height);
     const w = parseFloat(userData.weight);
-    
+
     if (!h || !w || h <= 0) {
       return { value: '--', status: 'Enter data to calculate', color: 'var(--text-muted)' };
     }
     const heightInMeters = h / 100;
     const bmi = (w / (heightInMeters * heightInMeters)).toFixed(1);
-    
+
     let status = 'Normal ✅';
     let color = '#4ade80';
     if (bmi < 18.5) {
@@ -146,36 +148,36 @@ const Dashboard = () => {
       status = 'Obese ❌';
       color = '#ef4444';
     }
-    
+
     return { value: bmi, status, color };
   };
 
   const getCalorieData = () => {
     const w = parseFloat(userData.weight);
     if (!w || w <= 0) {
-      return { 
-        value: '--', 
-        status: 'Data required', 
-        subtext: 'Enter weight to calculate target', 
+      return {
+        value: '--',
+        status: 'Data required',
+        subtext: 'Enter weight to calculate target',
         label: 'Daily Target',
         color: 'var(--text-muted)'
       };
     }
-    
+
     const maintenance = w * 30;
     if (userData.goal === 'muscle') {
-      return { 
-        value: Math.round(maintenance + 300), 
-        status: '+300 kcal surplus', 
-        subtext: 'Surplus for muscle growth 💪', 
+      return {
+        value: Math.round(maintenance + 300),
+        status: '+300 kcal surplus',
+        subtext: 'Surplus for muscle growth 💪',
         label: 'Eat ~',
         color: '#4ade80' // Green accent
       };
     } else {
-      return { 
-        value: Math.round(maintenance - 400), 
-        status: '-400 kcal deficit', 
-        subtext: 'Calorie deficit for fat loss 🔥', 
+      return {
+        value: Math.round(maintenance - 400),
+        status: '-400 kcal deficit',
+        subtext: 'Calorie deficit for fat loss 🔥',
         label: 'Target ~',
         color: '#f97316' // Orange accent
       };
@@ -189,7 +191,7 @@ const Dashboard = () => {
     <div className="dashboard-page" style={styles.pageWrapper}>
       <div style={styles.contentWrapper}>
         <div className="container" style={styles.content}>
-          
+
           {/* WELCOME HEADER */}
           <header style={styles.header}>
             <div>
@@ -225,30 +227,30 @@ const Dashboard = () => {
             <div style={styles.inputGrid}>
               <div style={styles.editCard}>
                 <div style={styles.editLabel}>Weight (kg)</div>
-                <input 
-                  type="number" 
-                  style={styles.editInput} 
-                  value={userData.weight} 
-                  placeholder="0.0" 
-                  onChange={(e) => setUserData({...userData, weight: e.target.value})}
+                <input
+                  type="number"
+                  style={styles.editInput}
+                  value={userData.weight}
+                  placeholder="0.0"
+                  onChange={(e) => setUserData({ ...userData, weight: e.target.value })}
                 />
               </div>
               <div style={styles.editCard}>
                 <div style={styles.editLabel}>Height (cm)</div>
-                <input 
-                  type="number" 
-                  style={styles.editInput} 
-                  value={userData.height} 
-                  placeholder="0" 
-                  onChange={(e) => setUserData({...userData, height: e.target.value})}
+                <input
+                  type="number"
+                  style={styles.editInput}
+                  value={userData.height}
+                  placeholder="0"
+                  onChange={(e) => setUserData({ ...userData, height: e.target.value })}
                 />
               </div>
               <div style={styles.editCard}>
                 <div style={styles.editLabel}>Goal</div>
-                <select 
-                  style={styles.editInput} 
-                  value={userData.goal} 
-                  onChange={(e) => setUserData({...userData, goal: e.target.value})}
+                <select
+                  style={styles.editInput}
+                  value={userData.goal}
+                  onChange={(e) => setUserData({ ...userData, goal: e.target.value })}
                 >
                   <option value="muscle">Muscle Gain</option>
                   <option value="fat_loss">Fat Loss</option>
@@ -256,10 +258,10 @@ const Dashboard = () => {
               </div>
               <div style={styles.editCard}>
                 <div style={styles.editLabel}>Experience</div>
-                <select 
-                  style={styles.editInput} 
-                  value={userData.experience} 
-                  onChange={(e) => setUserData({...userData, experience: e.target.value})}
+                <select
+                  style={styles.editInput}
+                  value={userData.experience}
+                  onChange={(e) => setUserData({ ...userData, experience: e.target.value })}
                 >
                   <option value="beginner">Beginner</option>
                   <option value="intermediate">Intermediate</option>
@@ -280,11 +282,11 @@ const Dashboard = () => {
                 {userData.weight && parseFloat(userData.weight) > 0 ? (
                   <>{userData.weight} <span>kg</span></>
                 ) : (
-                  <><span style={{color: 'var(--text-muted)'}}>--</span> <span>kg</span></>
+                  <><span style={{ color: 'var(--text-muted)' }}>--</span> <span>kg</span></>
                 )}
               </div>
-              <div style={{...styles.statChange, color: userData.weight && parseFloat(userData.weight) > 0 ? '#4ade80' : 'var(--text-muted)'}}>
-                {userData.weight && parseFloat(userData.weight) > 0 
+              <div style={{ ...styles.statChange, color: userData.weight && parseFloat(userData.weight) > 0 ? '#4ade80' : 'var(--text-muted)' }}>
+                {userData.weight && parseFloat(userData.weight) > 0
                   ? `Goal: ${userData.goal === 'fat_loss' ? 'Fat Loss' : 'Muscle Gain'}`
                   : 'Enter weight to track goal'}
               </div>
@@ -296,12 +298,12 @@ const Dashboard = () => {
               </div>
               <div style={styles.statValue}>
                 {calorieData.value === '--' ? (
-                  <><span style={{color: 'var(--text-muted)'}}>--</span> <span>kcal</span></>
+                  <><span style={{ color: 'var(--text-muted)' }}>--</span> <span>kcal</span></>
                 ) : (
-                  <>{calorieData.label}{calorieData.value} <span style={{fontSize: '1rem', color: 'var(--text-muted)', fontWeight: '600'}}>kcal</span></>
+                  <>{calorieData.label}{calorieData.value} <span style={{ fontSize: '1rem', color: 'var(--text-muted)', fontWeight: '600' }}>kcal</span></>
                 )}
               </div>
-              <div style={{...styles.statChange, color: calorieData.color}}>
+              <div style={{ ...styles.statChange, color: calorieData.color }}>
                 {calorieData.status}
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', fontWeight: '500' }}>
@@ -314,9 +316,9 @@ const Dashboard = () => {
                 <span>Workout Streak</span>
               </div>
               <div style={styles.statValue}>{streak} <span>days</span></div>
-              <div style={{...styles.statChange, color: 'var(--text-muted)'}}>Keep it up! ⚡</div>
+              <div style={{ ...styles.statChange, color: 'var(--text-muted)' }}>Keep it up! ⚡</div>
             </div>
-            
+
             {/* BMI CARD */}
             <div className="dash-card stat-card" style={styles.statCard}>
               <div style={styles.statHeader}>
@@ -325,23 +327,23 @@ const Dashboard = () => {
               </div>
               <div style={styles.statValue}>
                 {bmiData.value === '--' ? (
-                  <span style={{color: 'var(--text-muted)'}}>--</span>
+                  <span style={{ color: 'var(--text-muted)' }}>--</span>
                 ) : (
                   bmiData.value
                 )}
               </div>
-              <div style={{...styles.statChange, color: bmiData.color}}>
+              <div style={{ ...styles.statChange, color: bmiData.color }}>
                 {bmiData.status}
               </div>
             </div>
             {/* INTEGRATED MEMBERSHIP CARD */}
-            <div className="dash-card stat-card" style={{...styles.statCard, cursor: 'pointer'}} onClick={() => navigate('/profile')}>
+            <div className="dash-card stat-card" style={{ ...styles.statCard, cursor: 'pointer' }} onClick={() => navigate('/profile')}>
               <div style={styles.statHeader}>
                 <ShieldCheck size={20} color="var(--primary-color)" />
                 <span>Membership Status</span>
               </div>
-              <div style={{...styles.statValue, fontSize: '1.6rem', marginTop: '0.5rem'}}>{userData.plan || 'No Plan'}</div>
-              <div style={{...styles.statChange, color: timerColor}}>{timeLeft || 'Inactive'}</div>
+              <div style={{ ...styles.statValue, fontSize: '1.6rem', marginTop: '0.5rem' }}>{userData.plan || 'No Plan'}</div>
+              <div style={{ ...styles.statChange, color: timerColor }}>{timeLeft || 'Inactive'}</div>
             </div>
           </div>
 
@@ -357,10 +359,10 @@ const Dashboard = () => {
               {workoutSchedule.map((day, i) => {
                 const isToday = i === currentDayIndex;
                 return (
-                  <div key={i} style={{...styles.dayCard, ...(isToday ? styles.todayCard : {})}}>
-                    <p style={{...styles.dayName, color: isToday ? 'white' : 'var(--text-muted)'}}>{day.day.substring(0, 3)}</p>
-                    <div style={{...styles.dot, backgroundColor: day.color}}></div>
-                    <p style={{...styles.muscleName, color: isToday ? 'var(--primary-color)' : 'white'}}>{day.muscle}</p>
+                  <div key={i} style={{ ...styles.dayCard, ...(isToday ? styles.todayCard : {}) }}>
+                    <p style={{ ...styles.dayName, color: isToday ? 'white' : 'var(--text-muted)' }}>{day.day.substring(0, 3)}</p>
+                    <div style={{ ...styles.dot, backgroundColor: day.color }}></div>
+                    <p style={{ ...styles.muscleName, color: isToday ? 'var(--primary-color)' : 'white' }}>{day.muscle}</p>
                   </div>
                 );
               })}

@@ -1,3 +1,6 @@
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../db/firebase';
+import { auth } from '../db/firebase';
 /**
  * Centralized utility for managing user data and workout tracking in localStorage.
  */
@@ -38,7 +41,7 @@ export const getUserData = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultData));
     return defaultData;
   }
-  
+
   const userData = JSON.parse(data);
   return checkAndResetWorkout(userData);
 };
@@ -48,7 +51,7 @@ export const getUserData = () => {
  */
 export const setUserData = (data) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  
+
   // Sync with userData legacy key if needed (for other components)
   const userDataStr = localStorage.getItem('userData');
   if (userDataStr) {
@@ -68,7 +71,7 @@ export const getWeightHistory = () => {
   const data = getUserData();
   const currentWeight = data ? data.weight : null;
   if (!currentWeight) return [];
-  
+
   // Initialize with 5 entries of current weight if no history but weight exists
   const defaultHistory = Array(5).fill(currentWeight);
   localStorage.setItem('weightHistory', JSON.stringify(defaultHistory));
@@ -88,10 +91,25 @@ export const addWeightToHistory = (weight) => {
 /**
  * Updates a specific field in the user data object.
  */
-export const updateUserField = (field, value) => {
+export const updateUserField = async (field, value) => {
   const data = getUserData();
   const updatedData = { ...data, [field]: value };
   setUserData(updatedData);
+  const uid = auth.currentUser?.uid;
+
+  if (uid) {
+    try {
+      await updateDoc(doc(db, "users", uid), {
+        [field]: value
+      });
+    } catch (err) {
+      console.log("Firestore update error:", err);
+    }
+  }
+
+  if (field === 'weight') {
+    addWeightToHistory(value);
+  }
 
   if (field === 'weight') {
     addWeightToHistory(value);
@@ -114,7 +132,7 @@ const checkAndResetWorkout = (userData) => {
     userData.workoutCompletedToday = false;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
   }
-  
+
   return userData;
 };
 
@@ -124,11 +142,11 @@ const checkAndResetWorkout = (userData) => {
 export const completeWorkout = () => {
   const data = getUserData();
   const now = new Date();
-  
+
   if (data.workoutCompletedToday) return data;
 
   let newStreak = (data.streak || 0);
-  
+
   if (data.lastWorkoutDate) {
     const lastDate = new Date(data.lastWorkoutDate);
     const yesterday = new Date();
@@ -137,7 +155,7 @@ export const completeWorkout = () => {
     // If last workout was yesterday, increment streak
     if (lastDate.toDateString() === yesterday.toDateString()) {
       newStreak += 1;
-    } 
+    }
     // If last workout was today (shouldn't happen here but safe), keep streak
     else if (lastDate.toDateString() === now.toDateString()) {
       // already handled by workoutCompletedToday check
@@ -159,11 +177,11 @@ export const completeWorkout = () => {
   };
 
   setUserData(updatedData);
-  
+
   // Also sync legacy workoutStreak key for components that might still use it
   localStorage.setItem('workoutStreak', newStreak.toString());
   localStorage.setItem('todayWorkoutCompleted', 'true');
-  
+
   return updatedData;
 };
 
@@ -180,7 +198,7 @@ export const getWorkoutForDay = (dayIndex) => {
     5: { muscle: 'Arms', color: '#ec4899', exercises: ['Bicep Curls', 'Tricep Extensions', 'Hammer Curls', 'Skull Crushers'] },
     6: { muscle: 'Cardio', color: '#eab308', exercises: ['5km Run', 'HIIT Circuit', 'Jump Rope', 'Swimming'] },
   };
-  
+
   return schedule[dayIndex] || schedule[0];
 };
 
@@ -189,10 +207,10 @@ export const getWorkoutForDay = (dayIndex) => {
  */
 export const getSmartExercises = (muscle, goal) => {
   const isFatLoss = goal === 'fat_loss';
-  
+
   const exercisesMap = {
-    'Chest': isFatLoss 
-      ? ['Push-ups', 'Burpees', 'Mountain Climbers', '10 min Light Cardio'] 
+    'Chest': isFatLoss
+      ? ['Push-ups', 'Burpees', 'Mountain Climbers', '10 min Light Cardio']
       : ['Bench Press', 'Incline Dumbbell Press', 'Chest Flys'],
     'Back': isFatLoss
       ? ['Pull-ups (Assisted)', 'Kettlebell Swings', 'Jump Rope', '10 min Light Cardio']

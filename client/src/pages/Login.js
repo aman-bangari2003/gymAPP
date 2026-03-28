@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, XCircle } from 'lucide-react';
 import { isUserLoggedIn } from '../utils/userStorage';
+import { auth } from '../db/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -45,39 +47,31 @@ const Login = () => {
     }
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Simulated login from localStorage
-    const savedUser = localStorage.getItem('userData');
-    if (savedUser) {
-      const user = JSON.parse(savedUser);
-      if (user.email === email && user.password === password) {
-        localStorage.setItem('user', JSON.stringify({ 
-          name: user.name, 
-          email: user.email,
-          membershipStatus: user.membershipStatus || 'Inactive',
-          plan: user.plan || null
-        }));
-        localStorage.setItem('isLoggedIn', 'true');
-        navigate('/home');
-        return;
-      }
-    }
-    
-    // Default fallback or wrong credentials
-    if (email === 'test@test.com' && password === 'password') {
-      localStorage.setItem('user', JSON.stringify({ 
-        name: 'Test User', 
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
         email,
+        password
+      );
+
+      console.log("Logged in:", userCredential.user);
+      localStorage.setItem('user', JSON.stringify({
+        name: userCredential.user.displayName || 'User',
+        email: userCredential.user.email,
         membershipStatus: 'Inactive',
         plan: null
       }));
       localStorage.setItem('isLoggedIn', 'true');
+
       navigate('/home');
-    } else {
-      setError('Invalid email or password. Please try again or create an account.');
+
+    } catch (error) {
+      console.log(error.message);
+      setError("Invalid email or password");
     }
   };
 
@@ -88,20 +82,20 @@ const Login = () => {
           <h2 className="auth-title">Welcome <span>Back</span></h2>
           <p className="auth-subtitle">Log in to enter the forge.</p>
         </div>
-        
+
         <form className="auth-form" onSubmit={handleLogin}>
           <div className="form-group">
             <label className="form-label" htmlFor="email">Email Address</label>
-            <input 
+            <input
               ref={emailRef}
-              className={`form-input ${email && !isEmailValid ? 'invalid' : ''}`} 
-              type="email" 
-              id="email" 
-              placeholder="Enter your email" 
+              className={`form-input ${email && !isEmailValid ? 'invalid' : ''}`}
+              type="email"
+              id="email"
+              placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               onKeyDown={(e) => handleKeyDown(e, passwordRef)}
-              required 
+              required
             />
             {email && !isEmailValid && (
               <p className="field-error"><XCircle size={14} /> Please enter a valid email address</p>
@@ -110,20 +104,20 @@ const Login = () => {
           <div className="form-group">
             <label className="form-label" htmlFor="password">Password</label>
             <div style={{ position: 'relative' }}>
-              <input 
+              <input
                 ref={passwordRef}
-                className={`form-input ${password && !isPasswordValid ? 'invalid' : ''}`} 
-                type={showPassword ? "text" : "password"} 
-                id="password" 
-                placeholder="Enter your password" 
+                className={`form-input ${password && !isPasswordValid ? 'invalid' : ''}`}
+                type={showPassword ? "text" : "password"}
+                id="password"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => handleKeyDown(e, null)}
                 style={{ paddingRight: '45px' }}
-                required 
+                required
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 style={{
                   position: 'absolute',
@@ -142,11 +136,11 @@ const Login = () => {
               </button>
             </div>
           </div>
-          
+
           {error && <p className="error-message">{error}</p>}
-          
-          <button 
-            type="submit" 
+
+          <button
+            type="submit"
             className="btn-primary auth-btn"
             disabled={!isFormValid}
             style={{ opacity: isFormValid ? 1 : 0.7 }}
@@ -154,7 +148,7 @@ const Login = () => {
             Login
           </button>
         </form>
-        
+
         <div className="auth-footer">
           Don't have an account? <Link to="/signup" className="auth-link">Create Account</Link>
         </div>

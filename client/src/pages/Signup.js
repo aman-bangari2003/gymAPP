@@ -2,6 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, ShieldCheck, XCircle, CheckCircle2 } from 'lucide-react';
 import { isUserLoggedIn } from '../utils/userStorage';
+import { auth } from '../db/firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { signOut } from 'firebase/auth';
+import { updateProfile } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +21,7 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
+
 
   const nameRef = useRef(null);
   const emailRef = useRef(null);
@@ -41,7 +48,7 @@ const Signup = () => {
   const satisfiedCount = validation.filter(r => r.isValid).length;
   const strength = satisfiedCount <= 2 ? 'Weak' : satisfiedCount <= 4 ? 'Medium' : 'Strong';
   const strengthColor = strength === 'Weak' ? '#ef4444' : strength === 'Medium' ? '#f59e0b' : '#4ade80';
-  
+
   const allRulesMet = validation.every(rule => rule.isValid);
   const passwordsMatch = formData.password && formData.password === formData.confirmPassword;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -81,8 +88,9 @@ const Signup = () => {
     }
   };
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
+
     if (!allRulesMet) return;
     setError('');
 
@@ -91,17 +99,39 @@ const Signup = () => {
       return;
     }
 
-    // Save to localStorage
-    localStorage.setItem('userData', JSON.stringify({
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      membershipStatus: 'Inactive',
-      plan: null
-    }));
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+      await updateProfile(userCredential.user, {
+        displayName: formData.name
+      });
+      const db = getFirestore();
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        name: formData.name,
+        email: formData.email,
+        membershipStatus: 'Inactive',
+        plan: null
+      });
 
-    // Redirect to login
-    navigate('/login');
+      console.log("User created:", userCredential.user);
+
+      localStorage.setItem('user', JSON.stringify({
+        name: formData.name,
+        email: formData.email,
+        membershipStatus: 'Inactive',
+        plan: null
+      }));
+
+      await signOut(auth);
+      navigate('/login');
+
+    } catch (error) {
+      console.log(error.message);
+      setError(error.message);
+    }
   };
 
   return (
@@ -111,20 +141,20 @@ const Signup = () => {
           <h2 className="auth-title">Join <span>IronClad</span></h2>
           <p className="auth-subtitle">Create an account and start your journey.</p>
         </div>
-        
+
         <form className="auth-form" onSubmit={handleSignup}>
           <div className="form-group">
             <label className="form-label" htmlFor="name">Full Name</label>
-            <input 
+            <input
               ref={nameRef}
-              className={`form-input ${formData.name && formData.name.trim().length === 0 ? 'invalid' : ''}`} 
-              type="text" 
-              id="name" 
-              placeholder="Enter your name" 
+              className={`form-input ${formData.name && formData.name.trim().length === 0 ? 'invalid' : ''}`}
+              type="text"
+              id="name"
+              placeholder="Enter your name"
               value={formData.name}
               onChange={handleChange}
               onKeyDown={(e) => handleKeyDown(e, emailRef)}
-              required 
+              required
             />
             {formData.name.length > 0 && formData.name.trim().length === 0 && (
               <p className="field-error"><XCircle size={14} /> Name cannot be empty</p>
@@ -132,24 +162,24 @@ const Signup = () => {
           </div>
           <div className="form-group">
             <label className="form-label" htmlFor="email">Email Address</label>
-            <input 
+            <input
               ref={emailRef}
-              className={`form-input ${formData.email && !isEmailValid ? 'invalid' : ''}`} 
-              type="email" 
-              id="email" 
-              placeholder="Enter your email" 
+              className={`form-input ${formData.email && !isEmailValid ? 'invalid' : ''}`}
+              type="email"
+              id="email"
+              placeholder="Enter your email"
               value={formData.email}
               onChange={handleChange}
               onKeyDown={(e) => handleKeyDown(e, passwordRef)}
-              required 
+              required
             />
             {/* Real-time Email Validation */}
             {formData.email && (
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '6px', 
-                marginTop: '8px', 
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                marginTop: '8px',
                 fontSize: '0.85rem',
                 color: isEmailValid ? '#4ade80' : '#ef4444',
                 fontWeight: '500',
@@ -163,37 +193,37 @@ const Signup = () => {
           <div className="form-group">
             <label className="form-label" htmlFor="password">Password</label>
             <div style={{ position: 'relative' }}>
-              <input 
+              <input
                 ref={passwordRef}
-                className={`form-input ${formData.password && !allRulesMet ? 'invalid' : ''}`} 
-                type={showPassword ? "text" : "password"} 
-                id="password" 
-                placeholder="Create a password" 
+                className={`form-input ${formData.password && !allRulesMet ? 'invalid' : ''}`}
+                type={showPassword ? "text" : "password"}
+                id="password"
+                placeholder="Create a password"
                 value={formData.password}
                 onChange={handleChange}
                 onFocus={() => setPasswordFocus(true)}
                 onBlur={() => setPasswordFocus(false)}
                 onKeyDown={(e) => handleKeyDown(e, confirmRef)}
                 style={{ paddingRight: '45px' }}
-                required 
+                required
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 style={styles.eyeBtn}
               >
                 {showPassword ? <EyeOff size={20} color="var(--text-muted)" /> : <Eye size={20} color="var(--text-muted)" />}
               </button>
             </div>
-            
+
             {/* Password Strength Bar */}
             {formData.password && (
               <div style={styles.strengthContainer}>
                 <div style={styles.strengthBarOuter}>
-                  <div style={{ 
-                    ...styles.strengthBarInner, 
-                    width: `${(satisfiedCount / 5) * 100}%`, 
-                    backgroundColor: strengthColor 
+                  <div style={{
+                    ...styles.strengthBarInner,
+                    width: `${(satisfiedCount / 5) * 100}%`,
+                    backgroundColor: strengthColor
                   }}></div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
@@ -207,10 +237,10 @@ const Signup = () => {
             {(passwordFocus || formData.password) && (
               <div style={styles.checklist}>
                 {validation.map((rule, idx) => (
-                  <div key={idx} style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '8px', 
+                  <div key={idx} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
                     fontSize: '0.8rem',
                     color: rule.isValid ? '#4ade80' : formData.password ? '#ef4444' : 'var(--text-muted)',
                     marginBottom: '4px',
@@ -226,34 +256,34 @@ const Signup = () => {
           <div className="form-group">
             <label className="form-label" htmlFor="confirmPassword">Confirm Password</label>
             <div style={{ position: 'relative' }}>
-              <input 
+              <input
                 ref={confirmRef}
-                className={`form-input ${formData.confirmPassword && !passwordsMatch ? 'invalid' : ''}`} 
-                type={showConfirmPassword ? "text" : "password"} 
-                id="confirmPassword" 
-                placeholder="Confirm your password" 
+                className={`form-input ${formData.confirmPassword && !passwordsMatch ? 'invalid' : ''}`}
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                placeholder="Confirm your password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 onKeyDown={(e) => handleKeyDown(e, null)}
                 style={{ paddingRight: '45px' }}
-                required 
+                required
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 style={styles.eyeBtn}
               >
                 {showConfirmPassword ? <EyeOff size={20} color="var(--text-muted)" /> : <Eye size={20} color="var(--text-muted)" />}
               </button>
             </div>
-            
+
             {/* Passwords Match Indicator */}
             {formData.confirmPassword && (
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '6px', 
-                marginTop: '10px', 
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                marginTop: '10px',
                 fontSize: '0.85rem',
                 color: passwordsMatch ? '#4ade80' : '#ef4444',
                 fontWeight: '600',
@@ -264,15 +294,15 @@ const Signup = () => {
               </div>
             )}
           </div>
-          
+
           {error && <p className="error-message">{error}</p>}
-          
-          <button 
-            type="submit" 
-            className="btn-primary auth-btn" 
+
+          <button
+            type="submit"
+            className="btn-primary auth-btn"
             disabled={!isFormValid}
-            style={{ 
-              opacity: isFormValid ? 1 : 0.6, 
+            style={{
+              opacity: isFormValid ? 1 : 0.6,
               cursor: isFormValid ? 'pointer' : 'not-allowed',
               transform: isFormValid ? 'scale(1)' : 'scale(0.98)',
               filter: isFormValid ? 'none' : 'grayscale(0.5)'
@@ -284,7 +314,7 @@ const Signup = () => {
 
         <div style={styles.divider}></div>
 
-        
+
         <div className="auth-footer">
           Already have an account? <Link to="/login" className="auth-link">Login Here</Link>
         </div>

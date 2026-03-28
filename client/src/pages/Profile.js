@@ -2,6 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, User, ArrowLeft, ShieldCheck, ShieldAlert, Crown, Flame, Dumbbell, CalendarDays, Target, Activity, Award as AwardIcon } from 'lucide-react';
 import { getUserData, updateUserField, isUserLoggedIn } from '../utils/userStorage';
+import { doc } from 'firebase/firestore';
+import { db } from '../db/firebase';
+import { auth } from '../db/firebase';
+import { onAuthStateChanged } from "firebase/auth";
+import { getDoc } from "firebase/firestore";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -28,7 +33,7 @@ const Profile = () => {
 
     const calculateTimeLeft = () => {
       if (!user.expiryDate) return;
-      
+
       const now = new Date();
       const expiry = new Date(user.expiryDate);
       const diffTime = expiry - now;
@@ -40,7 +45,7 @@ const Profile = () => {
       }
 
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      
+
       let newColor = '#4ade80'; // Green
       if (diffDays < 5) newColor = '#f59e0b'; // Orange
 
@@ -52,6 +57,21 @@ const Profile = () => {
     const timerId = setInterval(calculateTimeLeft, 1000);
     return () => clearInterval(timerId);
   }, [user]);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        const docRef = doc(db, "users", currentUser.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setUser(data);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -73,17 +93,12 @@ const Profile = () => {
     updateUserField('plan', null);
     updateUserField('membershipStatus', 'Inactive');
     updateUserField('expiryDate', null);
-    
+
     setShowCancelModal(false);
-    
+
     setTimeout(() => {
       navigate('/home#membership');
     }, 2000);
-  };
-
-  const handleFieldChange = (field, value) => {
-    const updatedUser = updateUserField(field, value);
-    setUser(updatedUser);
   };
 
   if (!user) return null;
@@ -94,16 +109,16 @@ const Profile = () => {
 
   const getPlanIcon = () => {
     switch (user.plan) {
-      case 'Elite': return <Crown size={24} color="#f59e0b" />; 
-      case 'Pro': return <Flame size={24} color="#ef4444" />;   
-      case 'Basic': return <Dumbbell size={24} color="#3b82f6" />; 
+      case 'Elite': return <Crown size={24} color="#f59e0b" />;
+      case 'Pro': return <Flame size={24} color="#ef4444" />;
+      case 'Basic': return <Dumbbell size={24} color="#3b82f6" />;
       default: return null;
     }
   };
 
   return (
     <div className="container" style={styles.page}>
-      
+
       <button className="back-btn sticky-back" onClick={() => navigate('/home')} style={styles.backBtnFixed}>
         <ArrowLeft size={20} />
         Back
@@ -113,7 +128,7 @@ const Profile = () => {
         <h1 style={styles.title}>Your <span>Profile</span></h1>
         <p style={styles.subtitle}>Personalize your fitness journey and account settings</p>
       </div>
-      
+
       <div className="profile-card" style={styles.card}>
         <div style={styles.avatarSection}>
           <div style={styles.avatarGlow}>
@@ -138,15 +153,15 @@ const Profile = () => {
               <Activity size={16} /> <span>Current Weight</span>
             </div>
             <div style={styles.displayText}>
-              {user.weight ? `${user.weight} kg` : <span style={{color: 'var(--text-muted)'}}>Not set yet</span>}
+              {user.weight ? `${user.weight} kg` : <span style={{ color: 'var(--text-muted)' }}>Not set yet</span>}
             </div>
           </div>
           <div style={styles.displayCard}>
             <div style={styles.displayLabel}>
-              <ArrowLeft size={16} style={{transform: 'rotate(90deg)'}} /> <span>Height</span>
+              <ArrowLeft size={16} style={{ transform: 'rotate(90deg)' }} /> <span>Height</span>
             </div>
             <div style={styles.displayText}>
-              {user.height ? `${user.height} cm` : <span style={{color: 'var(--text-muted)'}}>Not set yet</span>}
+              {user.height ? `${user.height} cm` : <span style={{ color: 'var(--text-muted)' }}>Not set yet</span>}
             </div>
           </div>
           <div style={styles.displayCard}>
@@ -154,7 +169,7 @@ const Profile = () => {
               <Target size={16} /> <span>Fitness Goal</span>
             </div>
             <div style={styles.displayText}>
-              {user.goal ? (user.goal === 'fat_loss' ? 'Fat Loss' : 'Muscle Gain') : <span style={{color: 'var(--text-muted)'}}>Not set yet</span>}
+              {user.goal ? (user.goal === 'fat_loss' ? 'Fat Loss' : 'Muscle Gain') : <span style={{ color: 'var(--text-muted)' }}>Not set yet</span>}
             </div>
           </div>
           <div style={styles.displayCard}>
@@ -162,11 +177,11 @@ const Profile = () => {
               <AwardIcon size={16} /> <span>Experience</span>
             </div>
             <div style={styles.displayText}>
-              {user.experience ? (user.experience.charAt(0).toUpperCase() + user.experience.slice(1)) : <span style={{color: 'var(--text-muted)'}}>Not set yet</span>}
+              {user.experience ? (user.experience.charAt(0).toUpperCase() + user.experience.slice(1)) : <span style={{ color: 'var(--text-muted)' }}>Not set yet</span>}
             </div>
           </div>
         </div>
-        
+
         <div style={styles.detailsSection}>
           <div style={styles.detailCard}>
             <div style={styles.detailHeader}>
@@ -189,11 +204,11 @@ const Profile = () => {
             <div style={styles.detailBody}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
                 <p style={styles.detailText}>
-                  {isActive 
-                    ? "Your membership is currently active and in good standing." 
+                  {isActive
+                    ? "Your membership is currently active and in good standing."
                     : timeLeft === 'Expired'
-                    ? "Your membership has expired. Please renew to continue using our services."
-                    : "You do not have an active membership yet."}
+                      ? "Your membership has expired. Please renew to continue using our services."
+                      : "You do not have an active membership yet."}
                 </p>
                 {timeLeft === 'Expired' && (
                   <button className="btn-primary" onClick={() => navigate('/home#membership')} style={{ alignSelf: 'flex-start', padding: '0.6rem 1.2rem', fontSize: '0.9rem' }}>
@@ -204,47 +219,47 @@ const Profile = () => {
             </div>
           </div>
 
-           <div style={styles.detailCard}>
-             <div style={styles.detailHeader}>
+          <div style={styles.detailCard}>
+            <div style={styles.detailHeader}>
               <span style={styles.detailLabel}>Current Plan</span>
-             </div>
-             <div style={{...styles.detailBody, flexDirection: 'column', gap: '1rem'}}>
-                {user.plan ? (
-                  <>
-                    <div style={styles.planBadgeContainer}>
-                      <div style={styles.iconWrapper}>
-                        {getPlanIcon()}
-                      </div>
-                      <div style={styles.planBadge}>{user.plan} Plan</div>
-                      {user.duration && (
-                        <div style={{ marginLeft: 'auto', backgroundColor: 'rgba(255,255,255,0.05)', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                          {user.duration}
-                        </div>
-                      )}
+            </div>
+            <div style={{ ...styles.detailBody, flexDirection: 'column', gap: '1rem' }}>
+              {user.plan ? (
+                <>
+                  <div style={styles.planBadgeContainer}>
+                    <div style={styles.iconWrapper}>
+                      {getPlanIcon()}
                     </div>
-                    {user.expiryDate && (
-                      <div style={styles.validityContainer}>
-                        <div>
-                          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '4px', margin: 0 }}>Valid till</p>
-                          <p style={{ color: 'white', fontWeight: '600', fontSize: '1.1rem', margin: 0 }}>{expiryFormatted}</p>
-                        </div>
-                        <div style={{ color: timerColor, fontWeight: '700', backgroundColor: `${timerColor}22`, padding: '8px 16px', borderRadius: '12px', fontSize: '0.95rem', border: `1px solid ${timerColor}44`, display: 'flex', alignItems: 'center' }}>
-                          {timeLeft}
-                        </div>
+                    <div style={styles.planBadge}>{user.plan} Plan</div>
+                    {user.duration && (
+                      <div style={{ marginLeft: 'auto', backgroundColor: 'rgba(255,255,255,0.05)', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                        {user.duration}
                       </div>
                     )}
-                  </>
-                ) : (
-                  <p style={styles.noPlanText}>No plan selected</p>
-                )}
-             </div>
+                  </div>
+                  {user.expiryDate && (
+                    <div style={styles.validityContainer}>
+                      <div>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '4px', margin: 0 }}>Valid till</p>
+                        <p style={{ color: 'white', fontWeight: '600', fontSize: '1.1rem', margin: 0 }}>{expiryFormatted}</p>
+                      </div>
+                      <div style={{ color: timerColor, fontWeight: '700', backgroundColor: `${timerColor}22`, padding: '8px 16px', borderRadius: '12px', fontSize: '0.95rem', border: `1px solid ${timerColor}44`, display: 'flex', alignItems: 'center' }}>
+                        {timeLeft}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p style={styles.noPlanText}>No plan selected</p>
+              )}
+            </div>
           </div>
         </div>
-        
+
         <div style={{ display: 'flex', gap: '1rem', width: '100%' }}>
           {user.plan && user.membershipStatus !== 'Inactive' && (
             <button className="btn-outline cancel-btn" onClick={handleCancelPlan} style={{ ...styles.cancelBtn, flex: 1 }}>
-               Cancel Membership
+              Cancel Membership
             </button>
           )}
           <button className="btn-outline logout-btn" onClick={handleLogout} style={{ ...styles.logoutBtn, flex: 1 }}>
@@ -291,12 +306,12 @@ const styles = {
   name: { fontSize: '2rem', color: 'white', fontWeight: '800', margin: 0 },
   email: { color: 'var(--text-muted)', fontSize: '1rem', margin: 0 },
   memberSince: { display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '500', backgroundColor: 'var(--bg-darker)', padding: '4px 10px', borderRadius: '6px', width: 'fit-content', border: '1px solid var(--border-color)' },
-  
+
   statsDisplayGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.5rem', marginBottom: '3rem' },
   displayCard: { backgroundColor: 'rgba(0,0,0,0.3)', padding: '1.25rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' },
   displayLabel: { display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '1px' },
   displayText: { color: 'white', fontSize: '1.2rem', fontWeight: '800' },
-  
+
   detailsSection: { display: 'flex', flexDirection: 'column', gap: '2rem', marginBottom: '3.5rem' },
   detailCard: { backgroundColor: 'rgba(10, 10, 10, 0.4)', borderRadius: '16px', padding: '2rem', border: '1px solid rgba(255, 255, 255, 0.05)', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.2)' },
   detailHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' },

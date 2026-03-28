@@ -4,6 +4,7 @@ import { Dumbbell, Activity, ShieldCheck, Users, Trophy, Clock, ArrowRight, Star
 import Features from '../components/Features';
 import TrainerCard from '../components/TrainerCard';
 import { motion, AnimatePresence } from 'framer-motion';
+import { isUserLoggedIn } from '../utils/userStorage';
 import './Home.css';
 
 const Home = () => {
@@ -106,7 +107,11 @@ const Home = () => {
             initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={fadeVariant} transition={{ duration: 0.5, delay: 0.3, ease: 'easeOut' }}
             style={styles.heroBtns}
           >
-            <button onClick={() => navigate('/signup')} className="btn-primary interaction-btn" style={{ padding: '1rem 2rem', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}>Join Now</button>
+            {isUserLoggedIn() ? (
+              <button onClick={() => navigate('/dashboard')} className="btn-primary interaction-btn" style={{ padding: '1rem 2rem', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}>Go to Dashboard</button>
+            ) : (
+              <button onClick={() => navigate('/signup')} className="btn-primary interaction-btn" style={{ padding: '1rem 2rem', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}>Join Now</button>
+            )}
             <button onClick={() => navigate('/plans')} className="btn-outline interaction-btn" style={{ padding: '1rem 2rem', fontSize: '1.1rem', cursor: 'pointer' }}>View Plans</button>
           </motion.div>
         </div>
@@ -345,12 +350,8 @@ const Home = () => {
                       }}
                     >
                       <div className="transformation-image-split">
-                        <div className="trans-img-half before" style={{ backgroundImage: `url(${successStories[activeSuccessStory].image})` }}>
-                          <span className="trans-badge before">BEFORE</span>
-                        </div>
-                        <div className="trans-img-half after" style={{ backgroundImage: `url(${successStories[activeSuccessStory].image})` }}>
-                          <span className="trans-badge after">AFTER</span>
-                        </div>
+                        <div className="trans-img-half before" style={{ backgroundImage: `url(${successStories[activeSuccessStory].image})` }} />
+                        <div className="trans-img-half after" style={{ backgroundImage: `url(${successStories[activeSuccessStory].image})` }} />
                       </div>
                       <div className="transformation-info">
                         <h3 className="story-title">{successStories[activeSuccessStory].title}</h3>
@@ -393,12 +394,8 @@ const Home = () => {
                   initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={fadeUpVariant} transition={{ duration: 0.5, delay: i * 0.15, ease: "easeOut" }}
                 >
                   <div className="transformation-image-split">
-                    <div className="trans-img-half before" style={{ backgroundImage: `url(${story.image})` }}>
-                      <span className="trans-badge before">BEFORE</span>
-                    </div>
-                    <div className="trans-img-half after" style={{ backgroundImage: `url(${story.image})` }}>
-                      <span className="trans-badge after">AFTER</span>
-                    </div>
+                    <div className="trans-img-half before" style={{ backgroundImage: `url(${story.image})` }} />
+                    <div className="trans-img-half after" style={{ backgroundImage: `url(${story.image})` }} />
                   </div>
                   <div className="transformation-info">
                     <h3 className="story-title">{story.title}</h3>

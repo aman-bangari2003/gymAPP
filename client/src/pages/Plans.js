@@ -6,7 +6,11 @@ import PaymentModal from '../components/PaymentModal';
 import { Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getUserData, setUserData, isUserLoggedIn } from '../utils/userStorage';
-
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../db/firebase';
+import { auth } from '../db/firebase';
+import { getDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 const Plans = () => {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [tempViewingPlan, setTempViewingPlan] = useState(null);
@@ -17,11 +21,22 @@ const Plans = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const user = getUserData();
-    if (user) {
-      if (user.plan) setSelectedPlan(user.plan);
-      if (user.membershipStatus) setMembershipStatus(user.membershipStatus);
-    }
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        const docRef = doc(db, "users", currentUser.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+
+          setUserData(data);
+          setMembershipStatus(data.membershipStatus);
+          setSelectedPlan(data.plan);
+        }
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const showToast = (message) => {
@@ -44,7 +59,7 @@ const Plans = () => {
     setActiveModal('payment');
   };
 
-  const handlePaymentSuccess = (planTitle, durationLabel) => {
+  const handlePaymentSuccess = async (planTitle, durationLabel) => {
     const user = getUserData();
     if (user) {
       const now = new Date();
@@ -54,6 +69,13 @@ const Plans = () => {
         ...user, membershipStatus: 'Active', plan: planTitle,
         duration: durationLabel, startDate: now.toISOString(), expiryDate: expiry.toISOString()
       };
+      await updateDoc(doc(db, "users", auth.currentUser.uid), {
+        plan: planTitle,
+        membershipStatus: "Active",
+        duration: durationLabel,
+        startDate: now.toISOString(),
+        expiryDate: expiry.toISOString()
+      });
       setUserData(updatedUser);
       setMembershipStatus('Active');
       setSelectedPlan(planTitle);
